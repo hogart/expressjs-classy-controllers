@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "jscs . && eslint .",
-    "test": "npm run lint"
+    "unit": "mocha -u bdd -R spec --recursive test",
+    "test": "npm run lint && npm run unit"
   },
   "repository": {
     "type": "git",
@@ -21,9 +22,7 @@
     "url": "https://github.com/hogart/expressjs-classy-controllers/issues"
   },
   "homepage": "https://github.com/hogart/expressjs-classy-controllers#readme",
-  "dependencies": {
-    "xtend": "^4.0.0"
-  },
+  "dependencies": {},
   "jscsConfig": {
     "requireSpaceAfterKeywords": [
       "if",
@@ -66,7 +65,9 @@
     }
   },
   "devDependencies": {
+    "chai": "^3.0.0",
     "eslint": "^0.23.0",
-    "jscs": "^1.13.1"
+    "jscs": "^1.13.1",
+    "mocha": "^2.2.5"
   }
 }
