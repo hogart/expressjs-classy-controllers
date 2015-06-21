@@ -1,0 +1,72 @@
+{
+  "name": "expressjs-classy-controllers",
+  "version": "0.1.0",
+  "description": "Reducing boilerplate code for typical controllers",
+  "main": "index.js",
+  "scripts": {
+    "lint": "jscs . && eslint .",
+    "test": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://hogart@github.com/hogart/expressjs-classy-controllers.git"
+  },
+  "keywords": [
+    "expressjs",
+    "controller"
+  ],
+  "author": "Konstantin Kitmanov <doctor.hogart@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hogart/expressjs-classy-controllers/issues"
+  },
+  "homepage": "https://github.com/hogart/expressjs-classy-controllers#readme",
+  "dependencies": {
+    "xtend": "^4.0.0"
+  },
+  "jscsConfig": {
+    "requireSpaceAfterKeywords": [
+      "if",
+      "for",
+      "while",
+      "do",
+      "switch",
+      "try",
+      "catch"
+    ],
+    "disallowKeywordsOnNewLine": [
+      "else"
+    ],
+    "disallowSpaceBeforePostfixUnaryOperators": true,
+    "disallowMultipleLineStrings": true,
+    "requireSpaceBeforeBinaryOperators": true,
+    "requireSpaceAfterBinaryOperators": true,
+    "disallowSpaceAfterPrefixUnaryOperators": true,
+    "excludeFiles": [
+      "node_modules"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true
+    },
+    "rules": {
+      "no-underscore-dangle": [
+        0
+      ],
+      "quotes": [
+        2,
+        "single",
+        "avoid-escape"
+      ],
+      "eol-last": [
+        0
+      ]
+    }
+  },
+  "devDependencies": {
+    "eslint": "^0.23.0",
+    "jscs": "^1.13.1"
+  }
+}
