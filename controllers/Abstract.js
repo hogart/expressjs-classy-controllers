@@ -3,6 +3,7 @@
 function AbstractController (params) {
     this.viewRoot = params.viewRoot;
     this.urlRoot = params.urlRoot || '/';
+    this.humanName = params.humanName;
 }
 
 AbstractController.prototype = {
@@ -16,3 +17,5 @@ AbstractController.prototype = {
 };
 
 AbstractController.extend = require('../lib/inherit');
+
+module.exports = AbstractController;
