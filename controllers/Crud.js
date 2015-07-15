@@ -1,19 +1,20 @@
 'use strict';
 
-var AbstractController = require('./Abstract');
+const AbstractController = require('./Abstract');
+const path = require('path');
 
-var CrudController = AbstractController.extend({
-    constructor: function (params) {
-        if (!params.model) {
+class CrudController extends AbstractController {
+    constructor (params) {
+        let model = params.model;
+
+        if (!model) {
             throw new TypeError('Model not provided');
-        } else {
-            this.model = params.model;
         }
 
-        this.humanName = params.humanName;
+        super(params);
 
-        CrudController.__super__.call(this, params);
-    },
+        this.model = model;
+    }
 
     /**
      * Override this method to provide validation, sanitation, transformation and so on
@@ -21,93 +22,114 @@ var CrudController = AbstractController.extend({
      * @param {Function} callback
      * @returns {*}
      */
-    parseForm: function (formData, callback) {
+    parseForm (formData, callback) {
         return callback(null, formData);
-    },
+    }
 
-    _getId: function (req) {
+    _getId (req) {
         return req.params.id || req.query.id;
-    },
+    }
 
-    _renderItem: function (res, data) {
-        res.render(this.viewRoot + 'item', data);
-    },
+    /**
+     * @param res
+     * @param {Object} data
+     * @protected
+     */
+    _renderItem (res, data) {
+        return res.render(path.normalize(this.viewRoot + '/item'), data);
+    }
 
-    renderList: function (res, list) {
-        res.render(this.viewRoot + 'list', {list: list});
-    },
+    /**
+     * @param res
+     * @param list
+     * @returns {*}
+     * @protected
+     */
+    _renderList (res, list) {
+        return res.render(path.normalize(this.viewRoot + '/list'), {list: list});
+    }
 
-    _error: function (res, error) {
-        res.status(500).send(error);
-    },
+    /**
+     * Sets error status and sends error
+     * @param {Object} res expressjs response object
+     * @param {Object} error
+     * @param {number} [status=500] HTTP status
+     * @return {Object}
+     * @protected expressjs response object
+     */
+    _error (res, error, status) {
+        return res.status(status || 500).send(error);
+    }
 
-    list: function (req, res) {
-        return this.model.find({}, this.listFields || '', function (err, list) {
+    list (req, res) {
+        return this.model.find({}, this.listFields || '', (err, list) => {
             if (err) {
                 this._error(res, err);
             } else {
-                this.renderList(list);
+                this._renderList(list);
             }
-        }.bind(this));
-    },
+        });
+    }
 
-    create: function (req, res) {
-        this.parseForm(req.body, function (parseError, parsed) {
+    create (req, res) {
+        this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
                 res.render(this.viewRoot + 'item', {item: parsed, err: parseError});
             } else {
-                this.model.create(parsed, function (saveError, createdItem) {
+                this.model.create(parsed, (saveError, createdItem) => {
                     if (saveError) {
                         this._error(res, saveError);
                     } else {
                         this._renderItem(res, {item: createdItem});
                     }
-                }.bind(this));
+                });
             }
-        }.bind(this));
-    },
+        });
+    }
 
-    read: function (req, res) {
-        return this.model.findById(this._getId(req), function (err, item) {
+    read (req, res) {
+        return this.model.findById(this._getId(req), (err, item) => {
             if (err) {
                 this._error(res, err);
             } else {
                 this._renderItem(res, {item: item});
             }
-        }.bind(this));
-    },
+        });
+    }
 
-    update: function (req, res) {
-        this.parseForm(req.body, function (parseError, parsed) {
+    update (req, res) {
+        this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
                 this._renderItem(res, {item: parsed, err: parseError});
             } else {
-                this.model.findByIdAndUpdate(this._getId(req), parsed, function (updateError, updatedItem) {
+                this.model.findByIdAndUpdate(this._getId(req), parsed, (updateError, updatedItem) => {
                     if (updateError) {
                         this._error(res, updateError);
                     } else {
                         this._renderItem(res, {item: updatedItem});
                     }
-                }.bind(this));
+                });
             }
-        }.bind(this));
-    },
+        });
+    }
 
-    destroy: function (req, res) {
-        this.model.findByIdAndRemove(this._getId(req), function (err/*, deleted*/) {
+    destroy (req, res) {
+        this.model.findByIdAndRemove(this._getId(req), (err/*, deleted*/) => {
             if (err) {
                 this._error(res, err);
             } else {
                 res.redirect(this.urlRoot + '/');
             }
-        }.bind(this));
-    },
+        });
+    }
 
-    makeRoutes: function (router) {
+    makeRoutes (router) {
         router.get(this.urlRoot, this.list.bind(this));
         router.post(this.urlRoot, this.create.bind(this));
         router.get(this.urlRoot + ':id', this.read.bind(this));
         router.post(this.urlRoot + ':id', this.update.bind(this));
         router.delete(this.urlRoot + ':id', this.destroy.bind(this));
     }
-});
+}
+
+module.exports = CrudController;

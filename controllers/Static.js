@@ -1,23 +1,20 @@
 'use strict';
 
-var AbstractController = require('./Abstract');
+const AbstractController = require('./Abstract');
 
-var StaticController = AbstractController.extend({
-    constructor: function (params) {
-        StaticController.__super__.call(this, params);
-
-        this.humanName = params.humanName;
-
-        if (params.router) {
-            this.makeRoutes(params.router);
-        }
-    },
-
-    makeRoutes: function (router) {
-        router.get(this.urlRoot, this.index.bind(this));
-    },
-
-    index: function (req, res) {
-        return res.render(this.viewRoot);
+class StaticController extends AbstractController {
+    constructor (params) {
+        super(params);
     }
-});
+
+    makeRoutes (router) {
+        router.get(this.urlRoot, this.index.bind(this));
+    }
+
+    index (req, res) {
+        const data = this.getData ? this.getData(req, res) : {};
+        return res.render(this.viewRoot, data);
+    }
+}
+
+module.exports = StaticController;

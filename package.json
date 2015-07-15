@@ -1,11 +1,11 @@
 {
-  "name": "expressjs-classy-controllers",
+  "name": "expressjs-classy-controllers-es6",
   "version": "0.1.0",
   "description": "Reducing boilerplate code for typical controllers",
   "main": "index.js",
   "scripts": {
     "lint": "jscs . && eslint .",
-    "unit": "mocha -u bdd -R spec --recursive test",
+    "unit": "mocha -u bdd -R spec --recursive --harmony_arrow_functions --harmony_classes test",
     "test": "npm run lint && npm run unit"
   },
   "repository": {
@@ -23,7 +23,11 @@
   },
   "homepage": "https://github.com/hogart/expressjs-classy-controllers#readme",
   "dependencies": {},
+  "engines": {
+    "iojs": "2.3.4"
+  },
   "jscsConfig": {
+    "esnext": true,
     "requireSpaceAfterKeywords": [
       "if",
       "for",
@@ -47,7 +51,7 @@
   },
   "eslintConfig": {
     "env": {
-      "browser": true,
+      "es6": true,
       "node": true
     },
     "rules": {
@@ -66,7 +70,7 @@
   },
   "devDependencies": {
     "chai": "^3.0.0",
-    "eslint": "^0.23.0",
+    "eslint": "^0.24.x",
     "jscs": "^1.13.1",
     "mocha": "^2.2.5"
   }
