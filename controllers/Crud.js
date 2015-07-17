@@ -62,13 +62,13 @@ class CrudController extends AbstractController {
     }
 
     list (req, res) {
-        return this.model.find({}, this.listFields || '', (err, list) => {
+        return this.model.find(this.listQuery || {}, this.listFields || '', ((err, list) => {
             if (err) {
                 this._error(res, err);
             } else {
-                this._renderList(list);
+                this._renderList(res, list);
             }
-        });
+        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
     create (req, res) {

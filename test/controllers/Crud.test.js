@@ -131,6 +131,95 @@ describe('CrudController', () => {
             error(res, {answer: 42});
             assert.equal(res.statusCode, 500);
             assert.deepEqual(res.body, {answer: 42});
-        })
+        });
+    });
+
+    describe('list', function () {
+        const model = {
+            find (query, fields, callback) {
+                this.query = query;
+                this.fields = fields;
+                callback(this.error || null, ['some', 'data']);
+            }
+        };
+
+        beforeEach(() => {
+            model.query = null;
+            model.fields = null;
+            model.error = null;
+        });
+
+        it('fetches data from model and renders list', function (done) {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: model
+            });
+
+            controller._renderList = function (res, list) {
+                assert.deepEqual(res, {some: 'response'}, 'response object passed correctly');
+                assert.equal(model.fields, '', 'list of fields by default is empty string');
+                assert.deepEqual(list, ['some', 'data'], 'rendering list returned from model');
+                done();
+            };
+
+            controller.list(null, {some: 'response'});
+        });
+
+        it('uses listFields if defined', function (done) {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: model
+            });
+
+            controller.listFields = 'id name title createdAt';
+
+            controller._renderList = function () {
+                assert.equal(model.fields, 'id name title createdAt', 'list of fields used to create request');
+                done();
+            };
+
+            controller.list();
+        });
+
+        it('uses listQuery if defined', function (done) {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: model
+            });
+
+            controller.listQuery = {isActive: true};
+
+            controller._renderList = function () {
+                assert.deepEqual(model.query, {isActive: true});
+                done();
+            };
+
+            controller.list();
+        });
+
+        it('sends error if error occured during fetching', function (done) {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: model
+            });
+
+            model.error = {some: 'error'};
+
+            controller._error = function (res, error) {
+                assert.deepEqual(res, {some: 'response'}, 'response object passed correctly');
+                assert.deepEqual(error, {some: 'error'}, 'error object passed correctly');
+                done();
+            };
+
+            controller.list(null, {some: 'response'});
+        });
     });
 });
