@@ -64,6 +64,21 @@ class CrudController extends AbstractController {
         return res.status(status || 500).send(error);
     }
 
+    /**
+     * Either calls this._error or this._item depending on whether error is passed
+     * @param {Object} res expressjs response object
+     * @param {Object} item
+     * @param {Object} [error]
+     * @protected
+     */
+    _errorOrItem (res, item, error) {
+        if (error) {
+            this._error(res, error);
+        } else {
+            this._renderItem(res, {item: item});
+        }
+    }
+
     list (req, res) {
         return this.model.find(this.listQuery || {}, this.listFields || '', ((err, list) => {
             if (err) {
@@ -75,42 +90,30 @@ class CrudController extends AbstractController {
     }
 
     create (req, res) {
-        this.parseForm(req.body, (parseError, parsed) => {
+        this.parseForm(req.body, ((parseError, parsed) => {
             if (parseError) {
-                res.render(this.viewRoot + 'item', {item: parsed, err: parseError});
+                this._renderItem(res, {item: parsed, error: parseError});
             } else {
-                this.model.create(parsed, (saveError, createdItem) => {
-                    if (saveError) {
-                        this._error(res, saveError);
-                    } else {
-                        this._renderItem(res, {item: createdItem});
-                    }
-                });
+                this.model.create(parsed, ((saveError, createdItem) => {
+                    this._errorOrItem(res, createdItem, saveError);
+                }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
             }
-        });
+        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
     read (req, res) {
         return this.model.findById(this._getId(req), (err, item) => {
-            if (err) {
-                this._error(res, err);
-            } else {
-                this._renderItem(res, {item: item});
-            }
+            this._errorOrItem(res, item, err);
         });
     }
 
     update (req, res) {
         this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
-                this._renderItem(res, {item: parsed, err: parseError});
+                this._renderItem(res, {item: parsed, error: parseError});
             } else {
                 this.model.findByIdAndUpdate(this._getId(req), parsed, (updateError, updatedItem) => {
-                    if (updateError) {
-                        this._error(res, updateError);
-                    } else {
-                        this._renderItem(res, {item: updatedItem});
-                    }
+                    this._errorOrItem(res, updatedItem, updateError);
                 });
             }
         });

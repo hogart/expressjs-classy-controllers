@@ -150,6 +150,40 @@ describe('CrudController', () => {
         });
     });
 
+    describe('_errorOrItem', () => {
+        it('calls _error if error is present', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {}
+            });
+
+            controller._error = (res, error) => {
+                assert.deepEqual(error, {some: 'error'});
+                done();
+            };
+
+            controller._errorOrItem({}, null, {some: 'error'});
+        });
+
+        it('calls _renderItem if error is absent, correctly wrapping item in required object', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {}
+            });
+
+            controller._renderItem = (res, item) => {
+                assert.deepEqual(item, {item: {some: 'item'}});
+                done();
+            };
+
+            controller._errorOrItem({}, {some: 'item'});
+        });
+    });
+
     describe('list', function () {
         const model = {
             find (query, fields, callback) {
@@ -236,6 +270,96 @@ describe('CrudController', () => {
             };
 
             controller.list(null, {some: 'response'});
+        });
+    });
+
+    describe('create', () => {
+        it('renders item with additional error object, if parseForm returns error', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {}
+            });
+
+            controller._renderItem = (res, data) => {
+                assert.property(data, 'item');
+                assert.deepEqual(data.error, {some: 'error'});
+
+                done();
+            };
+
+            controller.parseForm = (rawData, callback) => {
+                callback({some: 'error'}, rawData);
+            };
+
+            controller.create({body: null});
+        });
+
+        it('calls this.model.create with proper data', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {
+                    create (data) {
+                        assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
+                        done();
+                    }
+                }
+            });
+
+            controller.parseForm = (rawData, callback) => {
+                callback(null, rawData);
+            };
+
+            controller.create({body: {some: 'data'}});
+        });
+
+        it('calls this.model.create with proper data', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {
+                    create (data) {
+                        assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
+                        done();
+                    }
+                }
+            });
+
+            controller.parseForm = (rawData, callback) => {
+                callback(null, rawData);
+            };
+
+            controller.create({body: {some: 'data'}});
+        });
+
+        it('calls this._errorOrCreate with proper data', (done) => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {
+                    create (data, callback) {
+                        callback(null, data);
+                    }
+                }
+            });
+
+            controller.parseForm = (rawData, callback) => {
+                callback(null, rawData);
+            };
+
+            controller._errorOrItem = (res, item, error) => {
+                assert.deepEqual(item, {some: 'data'});
+                assert.isNull(error);
+
+                done();
+            };
+
+            controller.create({body: {some: 'data'}});
         });
     });
 });
