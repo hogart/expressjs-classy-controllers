@@ -3,6 +3,7 @@
 'use strict';
 
 const assert = require('chai').assert;
+const path = require('path');
 const CrudController = require('../../controllers/Crud');
 
 new CrudController({ //eslint-disable-line
@@ -70,7 +71,7 @@ describe('CrudController', () => {
 
             const res = {
                 render (viewPath, data) {
-                    assert.equal(viewPath, 'views/some/path/item');
+                    assert.equal(viewPath, path.normalize('views/some/path/item'));
                     assert.deepEqual(data, {some: 'item'});
                     done();
                 }
@@ -91,7 +92,7 @@ describe('CrudController', () => {
 
             const res = {
                 render (viewPath, data) {
-                    assert.equal(viewPath, 'views/some/path/list');
+                    assert.equal(viewPath, path.normalize('views/some/path/list'));
                     assert.deepEqual(data, {list: ['some', 'list']}, 'data correctly wrapped to object');
                     done();
                 }
