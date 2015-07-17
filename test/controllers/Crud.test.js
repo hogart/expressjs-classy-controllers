@@ -14,17 +14,17 @@ new CrudController({ //eslint-disable-line
 });
 
 describe('CrudController', () => {
+    function controllerFactory (model) {
+        return new CrudController({
+            viewRoot: 'views/some/path',
+            urlRoot: '/mount/point',
+            humanName: 'Nothing here, move along',
+            model: model
+        });
+    }
+
     describe('constructor', () => {
         it('throws error if model is not passed', () => {
-            function controllerFactory (model) {
-                return new CrudController({
-                    viewRoot: 'views/some/path',
-                    urlRoot: '/mount/point',
-                    humanName: 'Nothing here, move along',
-                    model: model
-                });
-            }
-
             assert.throws(
                 controllerFactory.bind(null, false),
                 /Model not provided/,
@@ -62,13 +62,7 @@ describe('CrudController', () => {
 
     describe('_renderItem', () => {
         it('calls res.render with correct params', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
-
+            const controller = controllerFactory({});
             const res = {
                 render (viewPath, data) {
                     assert.equal(viewPath, path.normalize('views/some/path/item'));
@@ -81,12 +75,7 @@ describe('CrudController', () => {
         });
 
         it('throws error when passed object do not contains `item` field', () => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
+            const controller = controllerFactory({});
 
             assert.throws(
                 controller._renderItem.bind(controller, null, {some: 'item'}),
@@ -99,13 +88,7 @@ describe('CrudController', () => {
 
     describe('_renderList', () => {
         it('calls res.render with correct params', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
-
+            const controller = controllerFactory({});
             const res = {
                 render (viewPath, data) {
                     assert.equal(viewPath, path.normalize('views/some/path/list'));
@@ -152,12 +135,7 @@ describe('CrudController', () => {
 
     describe('_errorOrItem', () => {
         it('calls _error if error is present', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
+            const controller = controllerFactory({});
 
             controller._error = (res, error) => {
                 assert.deepEqual(error, {some: 'error'});
@@ -168,12 +146,7 @@ describe('CrudController', () => {
         });
 
         it('calls _renderItem if error is absent, correctly wrapping item in required object', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
+            const controller = controllerFactory({});
 
             controller._renderItem = (res, item) => {
                 assert.deepEqual(item, {item: {some: 'item'}});
@@ -200,12 +173,7 @@ describe('CrudController', () => {
         });
 
         it('fetches data from model and renders list', function (done) {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: model
-            });
+            const controller = controllerFactory(model);
 
             controller._renderList = function (res, list) {
                 assert.deepEqual(res, {some: 'response'}, 'response object passed correctly');
@@ -218,12 +186,7 @@ describe('CrudController', () => {
         });
 
         it('uses listFields if defined', function (done) {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: model
-            });
+            const controller = controllerFactory(model);
 
             controller.listFields = 'id name title createdAt';
 
@@ -236,12 +199,7 @@ describe('CrudController', () => {
         });
 
         it('uses listQuery if defined', function (done) {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: model
-            });
+            const controller = controllerFactory(model);
 
             controller.listQuery = {isActive: true};
 
@@ -254,12 +212,7 @@ describe('CrudController', () => {
         });
 
         it('sends error if error occured during fetching', function (done) {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: model
-            });
+            const controller = controllerFactory(model);
 
             model.error = {some: 'error'};
 
@@ -275,12 +228,7 @@ describe('CrudController', () => {
 
     describe('create', () => {
         it('renders item with additional error object, if parseForm returns error', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {}
-            });
+            const controller = controllerFactory({});
 
             controller._renderItem = (res, data) => {
                 assert.property(data, 'item');
@@ -297,15 +245,10 @@ describe('CrudController', () => {
         });
 
         it('calls this.model.create with proper data', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {
-                    create (data) {
-                        assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
-                        done();
-                    }
+            const controller = controllerFactory({
+                create (data) {
+                    assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
+                    done();
                 }
             });
 
@@ -317,15 +260,10 @@ describe('CrudController', () => {
         });
 
         it('calls this.model.create with proper data', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {
-                    create (data) {
-                        assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
-                        done();
-                    }
+            const controller = controllerFactory({
+                create (data) {
+                    assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
+                    done();
                 }
             });
 
@@ -337,14 +275,9 @@ describe('CrudController', () => {
         });
 
         it('calls this._errorOrCreate with proper data', (done) => {
-            const controller = new CrudController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along',
-                model: {
-                    create (data, callback) {
-                        callback(null, data);
-                    }
+            const controller = controllerFactory({
+                create (data, callback) {
+                    callback(null, data);
                 }
             });
 
