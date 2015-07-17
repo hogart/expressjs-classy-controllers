@@ -101,4 +101,36 @@ describe('CrudController', () => {
             controller._renderList(res, ['some', 'list']);
         });
     });
+
+    describe('_error', () => {
+        const res = {
+            status (statusCode) {
+                this.statusCode = statusCode;
+                return this;
+            },
+
+            send (body) {
+                this.body = body;
+            }
+        };
+
+        const error = CrudController.prototype._error;
+
+        beforeEach(() => {
+            res.body = null;
+            res.statusCode = null;
+        });
+
+        it('calls correct methods of res', () => {
+            error(res, {answer: 42}, 555);
+            assert.equal(res.statusCode, 555);
+            assert.deepEqual(res.body, {answer: 42});
+        });
+
+        it('defaults to 500 status code', function () {
+            error(res, {answer: 42});
+            assert.equal(res.statusCode, 500);
+            assert.deepEqual(res.body, {answer: 42});
+        })
+    });
 });
