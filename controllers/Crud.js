@@ -36,6 +36,9 @@ class CrudController extends AbstractController {
      * @protected
      */
     _renderItem (res, data) {
+        if (!('item' in data)) {
+            throw new TypeError('"item" is not provided for _renderItem');
+        }
         return res.render(path.normalize(this.viewRoot + '/item'), data);
     }
 

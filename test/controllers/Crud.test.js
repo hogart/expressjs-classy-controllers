@@ -72,12 +72,28 @@ describe('CrudController', () => {
             const res = {
                 render (viewPath, data) {
                     assert.equal(viewPath, path.normalize('views/some/path/item'));
-                    assert.deepEqual(data, {some: 'item'});
+                    assert.deepEqual(data, {item: {some: 'item'}});
                     done();
                 }
             };
 
-            controller._renderItem(res, {some: 'item'});
+            controller._renderItem(res, {item: {some: 'item'}});
+        });
+
+        it('throws error when passed object do not contains `item` field', () => {
+            const controller = new CrudController({
+                viewRoot: 'views/some/path',
+                urlRoot: '/mount/point',
+                humanName: 'Nothing here, move along',
+                model: {}
+            });
+
+            assert.throws(
+                controller._renderItem.bind(controller, null, {some: 'item'}),
+                TypeError,
+                /"item" is not provided for _renderItem/,
+                'correct error thrown'
+            );
         });
     });
 
