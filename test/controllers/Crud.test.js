@@ -387,7 +387,55 @@ describe('CrudController', () => {
 
             controller.update(request, response);
         });
+    });
 
+    describe('destroy', () => {
+        const request = {
+            params: {id: 12345},
+            body: {some: 'data'}
+        };
 
+        it('calls this.model.findByIdAndRemove', (done) => {
+            const controller = controllerFactory({
+                findByIdAndRemove (id, callback) {
+                    assert.equal(id, 12345, 'id extracted ok');
+                    assert.isFunction(callback, 'second argument is function');
+                    done();
+                }
+            });
+
+            controller.destroy(request, null);
+        });
+
+        it('renders error if deletion failed', function (done) {
+            const controller = controllerFactory({
+                findByIdAndRemove (id, callback) {
+                    callback({some: 'error'}, id);
+                }
+            });
+
+            controller._error = (res, error) => {
+                assert.deepEqual(error, {some: 'error'});
+                done();
+            };
+
+            controller.destroy(request, null);
+        });
+
+        it('correctly redirects if deletion succeeded', (done) => {
+            const controller = controllerFactory({
+                findByIdAndRemove (id, callback) {
+                    callback(null, id);
+                }
+            });
+
+            controller.destroy(request, {
+                redirect (url) {
+                    assert.equal(url, controller.urlRoot + '/');
+
+                    done();
+                }
+            });
+        });
     });
 });

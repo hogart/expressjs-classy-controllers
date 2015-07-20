@@ -190,13 +190,13 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     destroy (req, res) {
-        this.model.findByIdAndRemove(this._getId(req), (err/*, deleted*/) => {
+        this.model.findByIdAndRemove(this._getId(req), ((err/*, deleted*/) => {
             if (err) {
                 this._error(res, err);
             } else {
                 res.redirect(this.urlRoot + '/');
             }
-        });
+        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
     /**
