@@ -69,7 +69,7 @@
     }
   },
   "devDependencies": {
-    "chai": "^3.0.0",
+    "chai": "^3.2.0",
     "eslint": "^0.24.x",
     "jscs": "^1.13.1",
     "mocha": "^2.2.5"
