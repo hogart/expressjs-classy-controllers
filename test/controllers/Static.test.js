@@ -3,18 +3,19 @@
 'use strict';
 
 const assert = require('chai').assert;
-
 const StaticController = require('../../controllers/Static');
+function controllerFactory (params) {
+    return new StaticController(params || {
+        viewRoot: 'views/some/path',
+        urlRoot: '/mount/point',
+        humanName: 'Nothing here, move along'
+    });
+}
 
 describe('StaticController', () => {
     describe('makeRoutes', () => {
         it('correctly calls router.get', (done) => {
-            const sc = new StaticController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along'
-            });
-
+            const sc = controllerFactory();
             const router = {
                 get (urlRoot, boundFn) {
                     assert.equal(urlRoot, '/mount/point', 'router.get got correct url');
@@ -29,12 +30,7 @@ describe('StaticController', () => {
 
     describe('index', () => {
         it('calls correct render', (done) => {
-            const sc = new StaticController({
-                viewRoot: 'views/some/path',
-                urlRoot: '/mount/point',
-                humanName: 'Nothing here, move along'
-            });
-
+            const sc = controllerFactory();
             const res = {
                 render (viewName) {
                     assert.equal(viewName, 'views/some/path', 'res.render with correct path to view');
