@@ -194,7 +194,7 @@ class CrudController extends AbstractController {
             if (err) {
                 this._error(res, err);
             } else {
-                res.redirect(this.urlRoot + '/');
+                res.redirect(this.urlRoot);
             }
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }

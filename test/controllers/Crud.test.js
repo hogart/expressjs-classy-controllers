@@ -6,13 +6,6 @@ const assert = require('chai').assert;
 const path = require('path');
 const CrudController = require('../../controllers/Crud');
 
-new CrudController({ //eslint-disable-line
-    viewRoot: 'views/some/path',
-    urlRoot: '/mount/point',
-    humanName: 'Nothing here, move along',
-    model: {}
-});
-
 describe('CrudController', () => {
     function controllerFactory (model) {
         return new CrudController({
@@ -431,11 +424,46 @@ describe('CrudController', () => {
 
             controller.destroy(request, {
                 redirect (url) {
-                    assert.equal(url, controller.urlRoot + '/');
+                    assert.equal(url, controller.urlRoot);
 
                     done();
                 }
             });
+        });
+    });
+
+    describe('makeRoutes', () => {
+        it('creates proper routes', () => {
+            const controller = controllerFactory({});
+            const router = {
+                gets: [],
+                posts: [],
+                dels: [],
+                get (url, handler) {
+                    this.gets.push(url);
+                },
+                post (url, handler) {
+                    this.posts.push(url);
+                },
+                delete (url, handler) {
+                    this.dels.push(url);
+                }
+            };
+
+            controller.makeRoutes(router);
+
+            assert.deepEqual(
+                router.gets,
+                [controller.urlRoot, controller.urlRoot + ':id']
+            );
+            assert.deepEqual(
+                router.posts,
+                [controller.urlRoot, controller.urlRoot + ':id']
+            );
+            assert.deepEqual(
+                router.dels,
+                [controller.urlRoot + ':id']
+            );
         });
     });
 });
