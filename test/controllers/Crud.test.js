@@ -126,7 +126,7 @@ describe('CrudController', () => {
             assert.deepEqual(res.body, {answer: 42});
         });
 
-        it('defaults to 500 status code', function () {
+        it('defaults to 500 status code', () => {
             error(res, {answer: 42});
             assert.equal(res.statusCode, 500);
             assert.deepEqual(res.body, {answer: 42});
@@ -157,7 +157,7 @@ describe('CrudController', () => {
         });
     });
 
-    describe('list', function () {
+    describe('list', () => {
         const model = {
             find (query, fields, callback) {
                 this.query = query;
@@ -172,7 +172,7 @@ describe('CrudController', () => {
             model.error = null;
         });
 
-        it('fetches data from model and renders list', function (done) {
+        it('fetches data from model and renders list', (done) => {
             const controller = controllerFactory(model);
 
             controller._renderList = function (res, list) {
@@ -185,12 +185,12 @@ describe('CrudController', () => {
             controller.list(null, {some: 'response'});
         });
 
-        it('uses listFields if defined', function (done) {
+        it('uses listFields if defined', (done) => {
             const controller = controllerFactory(model);
 
             controller.listFields = 'id name title createdAt';
 
-            controller._renderList = function () {
+            controller._renderList = () => {
                 assert.equal(model.fields, 'id name title createdAt', 'list of fields used to create request');
                 done();
             };
@@ -198,12 +198,12 @@ describe('CrudController', () => {
             controller.list();
         });
 
-        it('uses listQuery if defined', function (done) {
+        it('uses listQuery if defined', (done) => {
             const controller = controllerFactory(model);
 
             controller.listQuery = {isActive: true};
 
-            controller._renderList = function () {
+            controller._renderList = () => {
                 assert.deepEqual(model.query, {isActive: true});
                 done();
             };
@@ -211,7 +211,7 @@ describe('CrudController', () => {
             controller.list();
         });
 
-        it('sends error if error occured during fetching', function (done) {
+        it('sends error if error occured during fetching', (done) => {
             const controller = controllerFactory(model);
 
             model.error = {some: 'error'};
