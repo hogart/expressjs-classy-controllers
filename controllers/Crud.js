@@ -102,9 +102,9 @@ class CrudController extends AbstractController {
     }
 
     read (req, res) {
-        return this.model.findById(this._getId(req), (err, item) => {
-            this._errorOrItem(res, item, err);
-        });
+        return this.model.findById(this._getId(req), ((error, item) => {
+            this._errorOrItem(res, item, error);
+        }).bind(this));
     }
 
     update (req, res) {

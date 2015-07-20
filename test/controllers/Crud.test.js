@@ -295,4 +295,38 @@ describe('CrudController', () => {
             controller.create({body: {some: 'data'}});
         });
     });
+
+    describe('read', () => {
+        it('calls this.model.findById', (done) => {
+            const controller = controllerFactory({
+                findById (id, callback) {
+                    assert.equal(id, 12345, 'id was extracted');
+                    assert.isFunction(callback, 'second argument is function');
+                    done();
+                }
+            });
+            const request = {params: {id: 12345}};
+
+            controller.read(request, null);
+        });
+
+        it('calls this._errorOrItem', (done) => {
+            const controller = controllerFactory({
+                findById (id, callback) {
+                    callback(null, {id});
+                }
+            });
+            const request = {params: {id: 12345}};
+            const response = {some: 'response'};
+
+            controller._errorOrItem = (res, item, error) => {
+                assert.equal(res, response);
+                assert.deepEqual(item, {id: 12345});
+                assert.isNull(error);
+                done();
+            };
+
+            controller.read(request, response);
+        });
+    });
 });
