@@ -3,6 +3,43 @@
 const AbstractController = require('./Abstract');
 const path = require('path');
 
+/**
+ * Expressjs request object
+ * @typedef {Object} Request
+ * @property {Object} query
+ * @property {Object} params
+ * @property {Object} body
+ */
+
+/**
+ * Expressjs response object
+ * @typedef {Object} Response
+ * @property {Function} render
+ * @property {Function} send
+ * @property {Function} status
+ * @property {Function} redirect
+ */
+
+/**
+ * Mongoose model
+ * @typedef {Object} Model
+ * @property {Function} find
+ * @property {Function} findById
+ * @property {Function} create
+ * @property {Function} findByIdAndRemove
+ * @property {Function} findByIdAndUpdate
+ */
+
+/**
+ * Expressjs router object
+ * @typedef {Object} Router
+ * @property {Function} get
+ * @property {Function} delete
+ * @property {Function} post
+ * @property {Function} put
+ * @property {Function} all
+ */
+
 class CrudController extends AbstractController {
     constructor (params) {
         let model = params.model;
@@ -26,12 +63,18 @@ class CrudController extends AbstractController {
         return callback(null, formData);
     }
 
+    /**
+     * Extracts id from request
+     * @param {Request} req
+     * @returns {number|string}
+     * @protected
+     */
     _getId (req) {
         return req.params.id || req.query.id;
     }
 
     /**
-     * @param res
+     * @param {Response} res
      * @param {Object} data
      * @protected
      */
@@ -54,11 +97,11 @@ class CrudController extends AbstractController {
 
     /**
      * Sets error status and sends error
-     * @param {Object} res expressjs response object
-     * @param {Object} error
+     * @param {Response} res expressjs response object
+     * @param {Error} error
      * @param {number} [status=500] HTTP status
-     * @return {Object}
-     * @protected expressjs response object
+     * @return {Response} expressjs response object
+     * @protected
      */
     _error (res, error, status) {
         return res.status(status || 500).send(error);
@@ -66,9 +109,9 @@ class CrudController extends AbstractController {
 
     /**
      * Either calls this._error or this._item depending on whether error is passed
-     * @param {Object} res expressjs response object
+     * @param {Response} res expressjs response object
      * @param {Object} item
-     * @param {Object} [error]
+     * @param {Error} [error]
      * @protected
      */
     _errorOrItem (res, item, error) {
@@ -79,6 +122,12 @@ class CrudController extends AbstractController {
         }
     }
 
+    /**
+     * Renders lis of all models
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {*}
+     */
     list (req, res) {
         return this.model.find(this.listQuery || {}, this.listFields || '', ((err, list) => {
             if (err) {
@@ -89,6 +138,11 @@ class CrudController extends AbstractController {
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     */
     create (req, res) {
         this.parseForm(req.body, ((parseError, parsed) => {
             if (parseError) {
@@ -101,12 +155,23 @@ class CrudController extends AbstractController {
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {*}
+     */
     read (req, res) {
         return this.model.findById(this._getId(req), ((error, item) => {
             this._errorOrItem(res, item, error);
         }).bind(this));
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     */
     update (req, res) {
         this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
@@ -119,6 +184,11 @@ class CrudController extends AbstractController {
         });
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     */
     destroy (req, res) {
         this.model.findByIdAndRemove(this._getId(req), (err/*, deleted*/) => {
             if (err) {
@@ -129,6 +199,10 @@ class CrudController extends AbstractController {
         });
     }
 
+    /**
+     *
+     * @param {Router} router
+     */
     makeRoutes (router) {
         router.get(this.urlRoot, this.list.bind(this));
         router.post(this.urlRoot, this.create.bind(this));
