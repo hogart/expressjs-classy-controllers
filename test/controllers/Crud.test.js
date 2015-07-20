@@ -329,4 +329,65 @@ describe('CrudController', () => {
             controller.read(request, response);
         });
     });
+
+    describe('update', () => {
+        it('renders item again along with errors from parsing', (done) => {
+            const controller = controllerFactory({});
+
+            controller.parseForm = (data, callback) => {
+                assert.ok('parseForm called');
+                callback({some: 'error'}, data);
+            };
+
+            controller._renderItem = (res, item) => {
+                assert.deepEqual(item.error, {some: 'error'}, 'error object ok');
+                assert.deepEqual(item.item, {some: 'object'}, 'item object ok');
+                done();
+            };
+
+            controller.update({body: {some: 'object'}});
+        });
+
+        it('calls this.model.findByIdAndUpdate', (done) => {
+            const request = {
+                params: {id: 12345},
+                body: {some: 'data'}
+            };
+            const controller = controllerFactory({
+                findByIdAndUpdate (id, data, callback) {
+                    assert.equal(id, 12345, 'id extracted ok');
+                    assert.deepEqual(data, {some: 'data'});
+                    assert.isFunction(callback, 'third argument is function');
+                    done();
+                }
+            });
+
+            controller.update(request);
+        });
+
+        it('calls this._errorOrItem', (done) => {
+            const request = {
+                params: {id: 12345},
+                body: {some: 'data'}
+            };
+            const response = {some: 'response'};
+            const controller = controllerFactory({
+                findByIdAndUpdate (id, data, callback) {
+                    callback({some: 'error'}, data);
+                }
+            });
+
+            controller._errorOrItem = (res, item, error) => {
+                assert.equal(res, response);
+                assert.deepEqual(item, {some: 'data'});
+                assert.deepEqual(error, {some: 'error'});
+
+                done();
+            };
+
+            controller.update(request, response);
+        });
+
+
+    });
 });

@@ -164,7 +164,7 @@ class CrudController extends AbstractController {
     read (req, res) {
         return this.model.findById(this._getId(req), ((error, item) => {
             this._errorOrItem(res, item, error);
-        }).bind(this));
+        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
     /**
@@ -173,15 +173,15 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     update (req, res) {
-        this.parseForm(req.body, (parseError, parsed) => {
+        this.parseForm(req.body, ((parseError, parsed) => {
             if (parseError) {
                 this._renderItem(res, {item: parsed, error: parseError});
             } else {
-                this.model.findByIdAndUpdate(this._getId(req), parsed, (updateError, updatedItem) => {
+                this.model.findByIdAndUpdate(this._getId(req), parsed, ((updateError, updatedItem) => {
                     this._errorOrItem(res, updatedItem, updateError);
-                });
+                }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
             }
-        });
+        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
 
     /**
