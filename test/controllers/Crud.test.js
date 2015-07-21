@@ -439,13 +439,13 @@ describe('CrudController', () => {
                 gets: [],
                 posts: [],
                 dels: [],
-                get (url, handler) {
+                get (url, handler) { //eslint-disable-line no-unused-vars
                     this.gets.push(url);
                 },
-                post (url, handler) {
+                post (url, handler) {  //eslint-disable-line no-unused-vars
                     this.posts.push(url);
                 },
-                delete (url, handler) {
+                delete (url, handler) {  //eslint-disable-line no-unused-vars
                     this.dels.push(url);
                 }
             };
