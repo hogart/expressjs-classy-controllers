@@ -422,9 +422,17 @@ describe('CrudController', () => {
                 }
             });
 
+            const router = {
+                get () {},
+                post () {},
+                delete () {}
+            };
+
+            controller.makeRoutes(router);
+
             controller.destroy(request, {
                 redirect (url) {
-                    assert.equal(url, controller.urlRoot);
+                    assert.equal(url, controller.urlRootFull);
 
                     done();
                 }
@@ -442,10 +450,10 @@ describe('CrudController', () => {
                 get (url, handler) { //eslint-disable-line no-unused-vars
                     this.gets.push(url);
                 },
-                post (url, handler) {  //eslint-disable-line no-unused-vars
+                post (url, handler) { //eslint-disable-line no-unused-vars
                     this.posts.push(url);
                 },
-                delete (url, handler) {  //eslint-disable-line no-unused-vars
+                delete (url, handler) { //eslint-disable-line no-unused-vars
                     this.dels.push(url);
                 }
             };
@@ -464,6 +472,21 @@ describe('CrudController', () => {
                 router.dels,
                 [controller.urlRoot + ':id']
             );
+        });
+
+        it('properly uses second parameter', function () {
+            const controller = controllerFactory({});
+            const router = {
+                get () {},
+                post () {},
+                delete () {}
+            };
+
+            controller.makeRoutes(router);
+            assert.equal(controller.urlRootFull, '/mount/point');
+
+            controller.makeRoutes(router, '/subApplication/');
+            assert.equal(controller.urlRootFull, '/subApplication/mount/point');
         });
     });
 });

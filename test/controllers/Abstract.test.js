@@ -29,6 +29,24 @@ describe('AbstractController', () => {
         });
     });
 
+    describe('makeFullRoot', () => {
+        it('assigns urlRootFull property', () => {
+            const ac = controllerFactory();
+            assert.changes(
+                ac.makeFullRoot.bind(ac, '/some/path'),
+                ac,
+                'urlRootFull'
+            );
+            assert.equal(ac.urlRootFull, '/some/path/mount/point');
+        });
+
+        it('argument defaults to empty string', () => {
+            const ac = controllerFactory();
+            ac.makeFullRoot();
+            assert.equal(ac.urlRootFull, '/mount/point');
+        });
+    });
+
     describe('routes creating', () => {
         it('calls makeRoutes if truthie router is passed', () => {
             function createController (router) {

@@ -194,7 +194,7 @@ class CrudController extends AbstractController {
             if (err) {
                 this._error(res, err);
             } else {
-                res.redirect(this.urlRoot);
+                res.redirect(this.urlRootFull);
             }
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
@@ -202,8 +202,13 @@ class CrudController extends AbstractController {
     /**
      *
      * @param {Router} router
+     * @param {string} [mountPath='']
      */
-    makeRoutes (router) {
+    makeRoutes (router, mountPath) {
+       if (mountPath) {
+           this.makeFullRoot(mountPath);
+       }
+
         router.get(this.urlRoot, this.list.bind(this));
         router.post(this.urlRoot, this.create.bind(this));
         router.get(this.urlRoot + ':id', this.read.bind(this));
