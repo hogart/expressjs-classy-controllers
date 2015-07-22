@@ -191,17 +191,20 @@ describe('CrudController', () => {
             controller.list();
         });
 
-        it('uses listQuery if defined', (done) => {
+        it('calls listQuery', (done) => {
             const controller = controllerFactory(model);
 
-            controller.listQuery = {isActive: true};
+            controller.listQuery = (req) => {
+                assert.deepEqual(req, {some: 'request'});
+                return {some: 'query'};
+            };
 
             controller._renderList = () => {
-                assert.deepEqual(model.query, {isActive: true});
+                assert.deepEqual(model.query, {some: 'query'});
                 done();
             };
 
-            controller.list();
+            controller.list({some: 'request'});
         });
 
         it('sends error if error occured during fetching', (done) => {

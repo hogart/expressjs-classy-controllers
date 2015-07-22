@@ -64,6 +64,15 @@ class CrudController extends AbstractController {
     }
 
     /**
+     *
+     * @param {Request} req
+     * @returns Object
+     */
+    listQuery (req) { //eslint-disable-line no-unused-vars
+        return {};
+    }
+
+    /**
      * Extracts id from request
      * @param {Request} req
      * @returns {number|string}
@@ -129,7 +138,7 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     list (req, res) {
-        return this.model.find(this.listQuery || {}, this.listFields || '', ((err, list) => {
+        return this.model.find(this.listQuery(req), this.listFields || '', ((err, list) => {
             if (err) {
                 this._error(res, err);
             } else {
