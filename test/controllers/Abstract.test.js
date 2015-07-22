@@ -2,8 +2,8 @@
 
 'use strict';
 
-var assert = require('chai').assert;
-var AbstractController = require('../../controllers/Abstract');
+const assert = require('chai').assert;
+const AbstractController = require('../../controllers/Abstract');
 function controllerFactory (params) {
     return new AbstractController(params || {
         viewRoot: 'views/some/path',
@@ -15,7 +15,7 @@ function controllerFactory (params) {
 describe('AbstractController', () => {
     describe('getLink', () => {
         it('returns correct array', () => {
-            var ac = controllerFactory();
+            const ac = controllerFactory();
 
             assert.deepEqual(ac.getLink(), ['mount/point', 'Nothing here, move along'], 'getLink returned correct array');
         });
@@ -23,7 +23,7 @@ describe('AbstractController', () => {
 
     describe('makeRoutes', () => {
         it('throws correct error', () => {
-            var ac = controllerFactory();
+            const ac = controllerFactory();
 
             assert.throws(ac.makeRoutes.bind(ac), /Pure virtual call/, 'correct error thrown');
         });
