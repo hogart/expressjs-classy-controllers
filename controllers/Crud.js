@@ -158,7 +158,11 @@ class CrudController extends AbstractController {
                 this._renderItem(res, {item: parsed, error: parseError});
             } else {
                 this.model.create(parsed, ((saveError, createdItem) => {
-                    this._errorOrItem(res, createdItem, saveError);
+                    if (createdItem.id && !saveError) {
+                        res.redirect(this.urlRootFull + createdItem.id);
+                    } else {
+                        this._errorOrItem(res, createdItem, saveError);
+                    }
                 }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
             }
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
@@ -171,7 +175,11 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     read (req, res) {
-        return this.model.findById(this._getId(req), ((error, item) => {
+        const id = this._getId(req);
+        return this.model.findById(id, ((error, item) => {
+            if (!item) {
+                error = new Error(`No such item: ${id}`);
+            }
             this._errorOrItem(res, item, error);
         }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
     }
