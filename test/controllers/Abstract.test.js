@@ -3,6 +3,7 @@
 'use strict';
 
 const assert = require('chai').assert;
+const path = require('path');
 const AbstractController = require('../../controllers/Abstract');
 function controllerFactory (params) {
     return new AbstractController(params || {
@@ -37,13 +38,13 @@ describe('AbstractController', () => {
                 ac,
                 'urlRootFull'
             );
-            assert.equal(ac.urlRootFull, '/some/path/mount/point');
+            assert.equal(ac.urlRootFull, path.normalize('/some/path/mount/point'));
         });
 
         it('argument defaults to empty string', () => {
             const ac = controllerFactory();
             ac.makeFullRoot();
-            assert.equal(ac.urlRootFull, '/mount/point');
+            assert.equal(ac.urlRootFull, path.normalize('/mount/point'));
         });
     });
 
@@ -68,6 +69,32 @@ describe('AbstractController', () => {
                 createController.bind(null, false),
                 'makeRoutes was not called'
             );
+        });
+    });
+
+    describe('setMiddleware', function () {
+        it('returns empty array if no middlewares present', () => {
+            const controller = controllerFactory();
+            controller.setMiddleware();
+            assert.deepEqual(controller.middleware, []);
+        });
+
+        it('returns array if function is passed', () => {
+            const mw = () => {};
+            const controller = controllerFactory();
+            controller.setMiddleware(mw);
+
+            assert.isArray(controller.middleware);
+            assert.lengthOf(controller.middleware, 1);
+            assert.equal(mw, controller.middleware[0]);
+        });
+
+        it('returns array unchanged', function () {
+            const mw = [() => {}];
+            const controller = controllerFactory();
+            controller.setMiddleware(mw);
+
+            assert.deepEqual(controller.middleware, mw);
         });
     });
 });

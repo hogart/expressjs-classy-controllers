@@ -63,6 +63,17 @@ class CrudController extends AbstractController {
         return callback(null, formData);
     }
 
+    parseFormMiddleware (req, res, next) {
+        this.parseForm(req.body, (parseError, parsed) => {
+            if (parseError) {
+                req.parseError = parseError;
+            }
+            req.parsed = parsed;
+
+            next();
+        });
+    }
+
     /**
      *
      * @param {Request} req
@@ -153,19 +164,17 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     create (req, res) {
-        this.parseForm(req.body, ((parseError, parsed) => {
-            if (parseError) {
-                this._renderItem(res, {item: parsed, error: parseError});
-            } else {
-                this.model.create(parsed, ((saveError, createdItem) => {
-                    if (createdItem.id && !saveError) {
-                        res.redirect(this.urlRootFull + createdItem.id);
-                    } else {
-                        this._errorOrItem(res, createdItem, saveError);
-                    }
-                }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
-            }
-        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        if (req.parseError) {
+            this._renderItem(res, {item: req.parsed, error: req.parseError});
+        } else {
+            this.model.create(req.parsed, ((saveError, createdItem) => {
+                if (createdItem.id && !saveError) {
+                    res.redirect(this.urlRootFull + createdItem.id);
+                } else {
+                    this._errorOrItem(res, createdItem, saveError);
+                }
+            }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        }
     }
 
     /**
@@ -190,15 +199,13 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     update (req, res) {
-        this.parseForm(req.body, ((parseError, parsed) => {
-            if (parseError) {
-                this._renderItem(res, {item: parsed, error: parseError});
-            } else {
-                this.model.findByIdAndUpdate(this._getId(req), parsed, ((updateError, updatedItem) => {
-                    this._errorOrItem(res, updatedItem, updateError);
-                }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
-            }
-        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        if (req.parseError) {
+            this._renderItem(res, {item: req.parsed, error: req.parseError});
+        } else {
+            this.model.findByIdAndUpdate(this._getId(req), req.parsed, ((updateError, updatedItem) => {
+                this._errorOrItem(res, updatedItem, updateError);
+            }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        }
     }
 
     /**
@@ -222,15 +229,17 @@ class CrudController extends AbstractController {
      * @param {string} [mountPath='']
      */
     makeRoutes (router, mountPath) {
-       if (mountPath) {
-           this.makeFullRoot(mountPath);
-       }
+        if (mountPath) {
+            this.makeFullRoot(mountPath);
+        }
 
-        router.get(this.urlRoot, this.list.bind(this));
-        router.post(this.urlRoot, this.create.bind(this));
-        router.get(this.urlRoot + ':id', this.read.bind(this));
-        router.post(this.urlRoot + ':id', this.update.bind(this));
-        router.delete(this.urlRoot + ':id', this.destroy.bind(this));
+        const addedMw = this.middleware.concat(this.parseFormMiddleware.bind(this));
+
+        router.get(this.urlRoot, this.middleware, this.list.bind(this));
+        router.post(this.urlRoot, addedMw, this.create.bind(this));
+        router.get(this.urlRoot + ':id', this.middleware, this.read.bind(this));
+        router.post(this.urlRoot + ':id', addedMw, this.update.bind(this));
+        router.delete(this.urlRoot + ':id', this.middleware, this.destroy.bind(this));
     }
 }
 

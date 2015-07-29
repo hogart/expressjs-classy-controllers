@@ -41,6 +41,33 @@ describe('CrudController', () => {
         });
     });
 
+    describe('parseFormMiddleware', () => {
+        it('uses this.parseForm', (done) => {
+            const controller = controllerFactory({});
+            controller.parseForm = (data, cb) => {
+                assert.deepEqual(data, {some: 'form data'});
+                assert.isFunction(cb);
+                done();
+            };
+
+            controller.parseFormMiddleware({body: {some: 'form data'}}, null, () => {});
+        });
+
+        it('adds fields to request', (done) => {
+            const controller = controllerFactory({});
+            controller.parseForm = (data, cb) => {
+                cb({some: 'error'}, {some: 'data'});
+            };
+            const req = {body: null};
+            controller.parseFormMiddleware(req, null, () => {
+                assert.deepEqual(req.parsed, {some: 'data'});
+                assert.deepEqual(req.parseError, {some: 'error'});
+
+                done();
+            });
+        });
+    });
+
     describe('_getId', () => {
         it('gets id from various sources', () => {
             const req1 = {params: {id: 1234}, query: {}};
@@ -223,7 +250,7 @@ describe('CrudController', () => {
     });
 
     describe('create', () => {
-        it('renders item with additional error object, if parseForm returns error', (done) => {
+        it('renders item with additional error object, if request contains req.parseError', (done) => {
             const controller = controllerFactory({});
 
             controller._renderItem = (res, data) => {
@@ -233,11 +260,7 @@ describe('CrudController', () => {
                 done();
             };
 
-            controller.parseForm = (rawData, callback) => {
-                callback({some: 'error'}, rawData);
-            };
-
-            controller.create({body: null});
+            controller.create({body: null, parseError: {some: 'error'}, parsed: {some: 'item'}});
         });
 
         it('calls this.model.create with proper data', (done) => {
@@ -248,26 +271,7 @@ describe('CrudController', () => {
                 }
             });
 
-            controller.parseForm = (rawData, callback) => {
-                callback(null, rawData);
-            };
-
-            controller.create({body: {some: 'data'}});
-        });
-
-        it('calls this.model.create with proper data', (done) => {
-            const controller = controllerFactory({
-                create (data) {
-                    assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
-                    done();
-                }
-            });
-
-            controller.parseForm = (rawData, callback) => {
-                callback(null, rawData);
-            };
-
-            controller.create({body: {some: 'data'}});
+            controller.create({parsed: {some: 'data'}});
         });
 
         it('calls this._errorOrCreate with proper data', (done) => {
@@ -277,10 +281,6 @@ describe('CrudController', () => {
                 }
             });
 
-            controller.parseForm = (rawData, callback) => {
-                callback(null, rawData);
-            };
-
             controller._errorOrItem = (res, item, error) => {
                 assert.deepEqual(item, {some: 'data'});
                 assert.isNull(error);
@@ -288,7 +288,7 @@ describe('CrudController', () => {
                 done();
             };
 
-            controller.create({body: {some: 'data'}});
+            controller.create({parsed: {some: 'data'}, parseError: null});
         });
     });
 
@@ -330,24 +330,19 @@ describe('CrudController', () => {
         it('renders item again along with errors from parsing', (done) => {
             const controller = controllerFactory({});
 
-            controller.parseForm = (data, callback) => {
-                assert.ok('parseForm called');
-                callback({some: 'error'}, data);
-            };
-
             controller._renderItem = (res, item) => {
                 assert.deepEqual(item.error, {some: 'error'}, 'error object ok');
                 assert.deepEqual(item.item, {some: 'object'}, 'item object ok');
                 done();
             };
 
-            controller.update({body: {some: 'object'}});
+            controller.update({parsed: {some: 'object'}, parseError: {some: 'error'}});
         });
 
         it('calls this.model.findByIdAndUpdate', (done) => {
             const request = {
                 params: {id: 12345},
-                body: {some: 'data'}
+                parsed: {some: 'data'}
             };
             const controller = controllerFactory({
                 findByIdAndUpdate (id, data, callback) {
@@ -364,7 +359,7 @@ describe('CrudController', () => {
         it('calls this._errorOrItem', (done) => {
             const request = {
                 params: {id: 12345},
-                body: {some: 'data'}
+                parsed: {some: 'data'}
             };
             const response = {some: 'response'};
             const controller = controllerFactory({
@@ -450,13 +445,22 @@ describe('CrudController', () => {
                 gets: [],
                 posts: [],
                 dels: [],
-                get (url, handler) { //eslint-disable-line no-unused-vars
+                middlewares: {
+                    0: [],
+                    1: []
+                },
+                postMw: [],
+                get (url, mw, handler) { //eslint-disable-line no-unused-vars
+                    this.middlewares[mw.length].push(mw);
                     this.gets.push(url);
                 },
-                post (url, handler) { //eslint-disable-line no-unused-vars
+                post (url, mw, handler) { //eslint-disable-line no-unused-vars
+                    this.middlewares[mw.length].push(mw);
+                    this.postMw.push(mw[0]);
                     this.posts.push(url);
                 },
-                delete (url, handler) { //eslint-disable-line no-unused-vars
+                delete (url, mw, handler) { //eslint-disable-line no-unused-vars
+                    this.middlewares[mw.length].push(mw);
                     this.dels.push(url);
                 }
             };
@@ -475,6 +479,10 @@ describe('CrudController', () => {
                 router.dels,
                 [controller.urlRoot + ':id']
             );
+
+            assert.lengthOf(router.middlewares[0], 3, '3 default empty middlewares');
+            assert.lengthOf(router.middlewares[1], 2, '2 middlewares consisting of just one middleware');
+            assert.equal(router.postMw[0], router.postMw[1], 'middlewares were correctly added to post requests');
         });
 
         it('properly uses second parameter', function () {
@@ -486,10 +494,10 @@ describe('CrudController', () => {
             };
 
             controller.makeRoutes(router);
-            assert.equal(controller.urlRootFull, '/mount/point');
+            assert.equal(controller.urlRootFull, path.normalize('/mount/point'));
 
             controller.makeRoutes(router, '/subApplication/');
-            assert.equal(controller.urlRootFull, '/subApplication/mount/point');
+            assert.equal(controller.urlRootFull, path.normalize('/subApplication/mount/point'));
         });
     });
 });

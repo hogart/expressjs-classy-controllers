@@ -10,6 +10,8 @@ class AbstractController {
 
         this.makeFullRoot(params.mountPath);
 
+        this.setMiddleware(params.middleware);
+
         if (params.router) {
             this.makeRoutes(params.router);
         }
@@ -25,6 +27,18 @@ class AbstractController {
 
     makeRoutes () {
         throw new Error('Pure virtual call');
+    }
+
+    setMiddleware (middleware) {
+        if (middleware) {
+            if (Array.isArray(middleware)) {
+                this.middleware = middleware;
+            } else {
+                this.middleware = [middleware];
+            }
+        } else {
+            this.middleware = [];
+        }
     }
 }
 

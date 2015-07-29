@@ -17,9 +17,10 @@ describe('StaticController', () => {
         it('correctly calls router.get', (done) => {
             const sc = controllerFactory();
             const router = {
-                get (urlRoot, boundFn) {
+                get (urlRoot, mw, boundFn) {
                     assert.equal(urlRoot, '/mount/point', 'router.get got correct url');
                     assert.isFunction(boundFn, 'router.get got handler');
+                    assert.lengthOf(mw, 0, 'empty middleware list');
                     done();
                 }
             };

@@ -8,7 +8,7 @@ class StaticController extends AbstractController {
     }
 
     makeRoutes (router) {
-        router.get(this.urlRoot, this.index.bind(this));
+        router.get(this.urlRoot, this.middleware, this.index.bind(this));
     }
 
     index (req, res) {
