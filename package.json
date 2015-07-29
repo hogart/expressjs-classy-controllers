@@ -1,6 +1,6 @@
 {
   "name": "expressjs-classy-controllers-es6",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Reducing boilerplate code for typical controllers",
   "main": "index.js",
   "scripts": {
