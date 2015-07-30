@@ -221,8 +221,9 @@ describe('CrudController', () => {
         it('calls listQuery', (done) => {
             const controller = controllerFactory(model);
 
-            controller.listQuery = (req) => {
+            controller.listQuery = (req, res) => {
                 assert.deepEqual(req, {some: 'request'});
+                assert.deepEqual(res, {some: 'response'});
                 return {some: 'query'};
             };
 
@@ -231,7 +232,7 @@ describe('CrudController', () => {
                 done();
             };
 
-            controller.list({some: 'request'});
+            controller.list({some: 'request'}, {some: 'response'});
         });
 
         it('sends error if error occured during fetching', (done) => {

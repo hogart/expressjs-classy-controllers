@@ -79,7 +79,7 @@ class CrudController extends AbstractController {
      * @param {Request} req
      * @returns Object
      */
-    listQuery (req) { //eslint-disable-line no-unused-vars
+    listQuery (req, res) { //eslint-disable-line no-unused-vars
         return {};
     }
 
@@ -149,7 +149,7 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     list (req, res) {
-        return this.model.find(this.listQuery(req), this.listFields || '', ((err, list) => {
+        return this.model.find(this.listQuery(req, res), this.listFields || '', ((err, list) => {
             if (err) {
                 this._error(res, err);
             } else {
