@@ -6,11 +6,20 @@ const assert = require('chai').assert;
 const path = require('path');
 const CrudController = require('../../controllers/Crud');
 
+const mockResponse = {
+    redirect () {},
+    status () {
+        return this;
+    },
+    send () {},
+    render () {}
+};
+
 describe('CrudController', () => {
     function controllerFactory (model) {
         return new CrudController({
             viewRoot: 'views/some/path',
-            urlRoot: '/mount/point',
+            urlRoot: '/mount/point/',
             humanName: 'Nothing here, move along',
             model: model
         });
@@ -153,36 +162,20 @@ describe('CrudController', () => {
         });
     });
 
-    describe('_errorOrItem', () => {
-        it('calls _error if error is present', (done) => {
-            const controller = controllerFactory({});
-
-            controller._error = (res, error) => {
-                assert.deepEqual(error, {some: 'error'});
-                done();
-            };
-
-            controller._errorOrItem({}, null, {some: 'error'});
-        });
-
-        it('calls _renderItem if error is absent, correctly wrapping item in required object', (done) => {
-            const controller = controllerFactory({});
-
-            controller._renderItem = (res, item) => {
-                assert.deepEqual(item, {item: {some: 'item'}});
-                done();
-            };
-
-            controller._errorOrItem({}, {some: 'item'});
-        });
-    });
-
     describe('list', () => {
         const model = {
-            find (query, fields, callback) {
+            find (query, fields) {
                 this.query = query;
                 this.fields = fields;
-                callback(this.error || null, ['some', 'data']);
+                return {
+                    then (resolve, rej) {
+                        if (model.error) {
+                            rej(model.error);
+                        } else {
+                            resolve(['some', 'data']);
+                        }
+                    }
+                };
             }
         };
 
@@ -237,16 +230,17 @@ describe('CrudController', () => {
 
         it('sends error if error occured during fetching', (done) => {
             const controller = controllerFactory(model);
+            function render () {}
 
             model.error = {some: 'error'};
 
             controller._error = function (res, error) {
-                assert.deepEqual(res, {some: 'response'}, 'response object passed correctly');
+                assert.deepEqual(res, {some: 'response', render}, 'response object passed correctly');
                 assert.deepEqual(error, {some: 'error'}, 'error object passed correctly');
                 done();
             };
 
-            controller.list(null, {some: 'response'});
+            controller.list(null, {some: 'response', render});
         });
     });
 
@@ -268,62 +262,60 @@ describe('CrudController', () => {
             const controller = controllerFactory({
                 create (data) {
                     assert.deepEqual(data, {some: 'data'}, 'model.create called with correct data');
-                    done();
+
+                    return {
+                        then (resolve) {
+                            resolve(data);
+                            done();
+                        }
+                    };
                 }
             });
 
-            controller.create({parsed: {some: 'data'}});
+            controller.create({parsed: {some: 'data'}}, mockResponse);
         });
 
-        it('calls this._errorOrCreate with proper data', (done) => {
+        it('redirects when item successfully created', (done) => {
             const controller = controllerFactory({
-                create (data, callback) {
-                    callback(null, data);
+                create (data) {
+                    return {
+                        then (resolve) {
+                            resolve(data);
+                        }
+                    };
                 }
             });
 
-            controller._errorOrItem = (res, item, error) => {
-                assert.deepEqual(item, {some: 'data'});
-                assert.isNull(error);
-
-                done();
+            const res = {
+                redirect (url) {
+                    assert.equal(url, path.normalize('/mount/point/some id'));
+                    done();
+                },
+                status () {
+                    return this;
+                },
+                send () {}
             };
 
-            controller.create({parsed: {some: 'data'}, parseError: null});
+            controller.create({parsed: {id: 'some id'}, parseError: null}, res);
         });
     });
 
     describe('read', () => {
         it('calls this.model.findById', (done) => {
             const controller = controllerFactory({
-                findById (id, callback) {
+                findById (id) {
                     assert.equal(id, 12345, 'id was extracted');
-                    assert.isFunction(callback, 'second argument is function');
-                    done();
+                    return {
+                        then () {
+                            done();
+                        }
+                    };
                 }
             });
             const request = {params: {id: 12345}};
 
-            controller.read(request, null);
-        });
-
-        it('calls this._errorOrItem', (done) => {
-            const controller = controllerFactory({
-                findById (id, callback) {
-                    callback(null, {id});
-                }
-            });
-            const request = {params: {id: 12345}};
-            const response = {some: 'response'};
-
-            controller._errorOrItem = (res, item, error) => {
-                assert.equal(res, response);
-                assert.deepEqual(item, {id: 12345});
-                assert.isNull(error);
-                done();
-            };
-
-            controller.read(request, response);
+            controller.read(request, mockResponse);
         });
     });
 
@@ -337,7 +329,7 @@ describe('CrudController', () => {
                 done();
             };
 
-            controller.update({parsed: {some: 'object'}, parseError: {some: 'error'}});
+            controller.update({parsed: {some: 'object'}, parseError: {some: 'error'}}, mockResponse);
         });
 
         it('calls this.model.findByIdAndUpdate', (done) => {
@@ -346,38 +338,20 @@ describe('CrudController', () => {
                 parsed: {some: 'data'}
             };
             const controller = controllerFactory({
-                findByIdAndUpdate (id, data, callback) {
+                findByIdAndUpdate (id, data) {
                     assert.equal(id, 12345, 'id extracted ok');
                     assert.deepEqual(data, {some: 'data'});
-                    assert.isFunction(callback, 'third argument is function');
-                    done();
+
+                    return {
+                        then (resolve) {
+                            resolve();
+                            done();
+                        }
+                    };
                 }
             });
 
-            controller.update(request);
-        });
-
-        it('calls this._errorOrItem', (done) => {
-            const request = {
-                params: {id: 12345},
-                parsed: {some: 'data'}
-            };
-            const response = {some: 'response'};
-            const controller = controllerFactory({
-                findByIdAndUpdate (id, data, callback) {
-                    callback({some: 'error'}, data);
-                }
-            });
-
-            controller._errorOrItem = (res, item, error) => {
-                assert.equal(res, response);
-                assert.deepEqual(item, {some: 'data'});
-                assert.deepEqual(error, {some: 'error'});
-
-                done();
-            };
-
-            controller.update(request, response);
+            controller.update(request, mockResponse);
         });
     });
 
@@ -389,20 +363,29 @@ describe('CrudController', () => {
 
         it('calls this.model.findByIdAndRemove', (done) => {
             const controller = controllerFactory({
-                findByIdAndRemove (id, callback) {
+                findByIdAndRemove (id) {
                     assert.equal(id, 12345, 'id extracted ok');
-                    assert.isFunction(callback, 'second argument is function');
-                    done();
+
+                    return {
+                        then (resolve) {
+                            resolve();
+                            done();
+                        }
+                    };
                 }
             });
 
-            controller.destroy(request, null);
+            controller.destroy(request, mockResponse);
         });
 
         it('renders error if deletion failed', function (done) {
             const controller = controllerFactory({
-                findByIdAndRemove (id, callback) {
-                    callback({some: 'error'}, id);
+                findByIdAndRemove () {
+                    return {
+                        then (resolve, reject) {
+                            reject({some: 'error'});
+                        }
+                    };
                 }
             });
 
@@ -411,13 +394,17 @@ describe('CrudController', () => {
                 done();
             };
 
-            controller.destroy(request, null);
+            controller.destroy(request, mockResponse);
         });
 
         it('correctly redirects if deletion succeeded', (done) => {
             const controller = controllerFactory({
-                findByIdAndRemove (id, callback) {
-                    callback(null, id);
+                findByIdAndRemove (id) {
+                    return {
+                        then (resolve) {
+                            resolve(id);
+                        }
+                    };
                 }
             });
 
@@ -495,10 +482,10 @@ describe('CrudController', () => {
             };
 
             controller.makeRoutes(router);
-            assert.equal(controller.urlRootFull, path.normalize('/mount/point'));
+            assert.equal(controller.urlRootFull, path.normalize('/mount/point/'));
 
             controller.makeRoutes(router, '/subApplication/');
-            assert.equal(controller.urlRootFull, path.normalize('/subApplication/mount/point'));
+            assert.equal(controller.urlRootFull, path.normalize('/subApplication/mount/point/'));
         });
     });
 });

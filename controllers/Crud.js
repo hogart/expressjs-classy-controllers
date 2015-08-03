@@ -128,18 +128,14 @@ class CrudController extends AbstractController {
     }
 
     /**
-     * Either calls this._error or this._item depending on whether error is passed
-     * @param {Response} res expressjs response object
-     * @param {Object} item
-     * @param {Error} [error]
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
      * @protected
      */
-    _errorOrItem (res, item, error) {
-        if (error) {
-            this._error(res, error);
-        } else {
-            this._renderItem(res, {item: item});
-        }
+    _listRequest (req, res) {
+        return this.model.find(this.listQuery(req, res), this.listFields || '');
     }
 
     /**
@@ -149,13 +145,14 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     list (req, res) {
-        return this.model.find(this.listQuery(req, res), this.listFields || '', ((err, list) => {
-            if (err) {
-                this._error(res, err);
-            } else {
-                this._renderList(res, list);
-            }
-        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        this._listRequest(req, res).then(
+            this._renderList.bind(this, res),
+            this._error.bind(this, res)
+        );
+    }
+
+    _createRequest (req, res) { //eslint-disable-line no-unused-vars
+        return this.model.create(req.parsed);
     }
 
     /**
@@ -164,17 +161,27 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     create (req, res) {
+        var onReject = this._error.bind(this, res);
+
         if (req.parseError) {
             this._renderItem(res, {item: req.parsed, error: req.parseError});
         } else {
-            this.model.create(req.parsed, ((saveError, createdItem) => {
-                if (createdItem.id && !saveError) {
-                    res.redirect(this.urlRootFull + createdItem.id);
-                } else {
-                    this._errorOrItem(res, createdItem, saveError);
-                }
-            }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+            this._createRequest(req, res).then(
+                ((createdItem) => {
+                    if (createdItem.id) {
+                        res.redirect(this.urlRootFull + createdItem.id);
+                    } else {
+                        onReject(new Error('Item saved incorrectly'));
+                    }
+                }).bind(this),
+                onReject
+            );
         }
+    }
+
+    _readRequest (req, res) { //eslint-disable-line no-unused-vars
+        const id = this._getId(req);
+        return this.model.findById(id);
     }
 
     /**
@@ -184,13 +191,20 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     read (req, res) {
-        const id = this._getId(req);
-        return this.model.findById(id, ((error, item) => {
-            if (!item) {
-                error = new Error(`No such item: ${id}`);
+        var onResolve = ((item) => {
+            if (item) {
+                this._renderItem(res, {item: item});
+            } else {
+                onReject(new Error(`No such item: ${this._getId(res)}`));
             }
-            this._errorOrItem(res, item, error);
-        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        }).bind(this); // TODO: remove this when iojs will support arrow functions correctly
+        var onReject = this._error.bind(this, res);
+
+        this._readRequest(req, res).then(onResolve, onReject);
+    }
+
+    _updateRequest (req, res) { //eslint-disable-line no-unused-vars
+        return this.model.findByIdAndUpdate(this._getId(req), req.parsed);
     }
 
     /**
@@ -199,13 +213,22 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     update (req, res) {
+        var onReject = this._error.bind(this, res);
+        var onResolve = this._renderItem.bind(this, res);
         if (req.parseError) {
-            this._renderItem(res, {item: req.parsed, error: req.parseError});
+            onResolve({item: req.parsed, error: req.parseError});
         } else {
-            this.model.findByIdAndUpdate(this._getId(req), req.parsed, ((updateError, updatedItem) => {
-                this._errorOrItem(res, updatedItem, updateError);
-            }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+            this._updateRequest(req, res).then(
+                (item) => {
+                    onResolve({item: item});
+                },
+                onReject
+            );
         }
+    }
+
+    _destroyRequest (req, res) { //eslint-disable-line no-unused-vars
+        return this.model.findByIdAndRemove(this._getId(req));
     }
 
     /**
@@ -214,13 +237,10 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     destroy (req, res) {
-        this.model.findByIdAndRemove(this._getId(req), ((err/*, deleted*/) => {
-            if (err) {
-                this._error(res, err);
-            } else {
-                res.redirect(this.urlRootFull);
-            }
-        }).bind(this)); // TODO: remove this when iojs will support arrow functions correctly
+        var onResolve = res.redirect.bind(res, this.urlRootFull);
+        var onReject = this._error.bind(this, res);
+
+        this._destroyRequest(req, res).then(onResolve, onReject);
     }
 
     /**
