@@ -169,7 +169,7 @@ class CrudController extends AbstractController {
             this._createRequest(req, res).then(
                 ((createdItem) => {
                     if (createdItem.id) {
-                        res.redirect(this.urlRootFull + createdItem.id);
+                        res.redirect(302, this.urlRootFull + createdItem.id);
                     } else {
                         onReject(new Error('Item saved incorrectly'));
                     }
@@ -237,7 +237,7 @@ class CrudController extends AbstractController {
      * @param {Response} res
      */
     destroy (req, res) {
-        var onResolve = res.redirect.bind(res, this.urlRootFull);
+        var onResolve = res.redirect.bind(res, 302, this.urlRootFull);
         var onReject = this._error.bind(this, res);
 
         this._destroyRequest(req, res).then(onResolve, onReject);
