@@ -3,5 +3,6 @@
 module.exports = {
     Abstract: require('./controllers/Abstract'),
     Static: require('./controllers/Static'),
-    Crud: require('./controllers/Crud')
+    CRUD: require('./controllers/CRUD'),
+    CRUDSequelize: require('./controllers/CRUDSequelize')
 };

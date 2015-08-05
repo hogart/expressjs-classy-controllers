@@ -1,11 +1,11 @@
 {
   "name": "expressjs-classy-controllers-es6",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Reducing boilerplate code for typical controllers",
   "main": "index.js",
   "scripts": {
     "lint": "jscs . && eslint .",
-    "unit": "mocha -u bdd -R spec --recursive --harmony_arrow_functions --harmony_classes test",
+    "unit": "mocha -u bdd -R spec --recursive --harmony_arrow_functions test",
     "test": "npm run lint && npm run unit"
   },
   "repository": {

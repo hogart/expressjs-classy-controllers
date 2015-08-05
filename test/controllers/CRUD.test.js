@@ -4,7 +4,7 @@
 
 const assert = require('chai').assert;
 const path = require('path');
-const CrudController = require('../../controllers/Crud');
+const CrudController = require('../../controllers/CRUD');
 
 const mockResponse = {
     redirect () {},
@@ -15,7 +15,7 @@ const mockResponse = {
     render () {}
 };
 
-describe('CrudController', () => {
+describe('CRUDController', () => {
     function controllerFactory (model) {
         return new CrudController({
             viewRoot: 'views/some/path',
@@ -287,7 +287,7 @@ describe('CrudController', () => {
             });
 
             const res = {
-                redirect (url) {
+                redirect (status, url) {
                     assert.equal(url, path.normalize('/mount/point/some id'));
                     done();
                 },
@@ -417,7 +417,7 @@ describe('CrudController', () => {
             controller.makeRoutes(router);
 
             controller.destroy(request, {
-                redirect (url) {
+                redirect (status, url) {
                     assert.equal(url, controller.urlRootFull);
 
                     done();

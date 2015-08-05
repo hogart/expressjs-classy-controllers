@@ -9,6 +9,8 @@ const path = require('path');
  * @property {Object} query
  * @property {Object} params
  * @property {Object} body
+ * @property {Object} parsed
+ * @property {Object} parseError
  */
 
 /**
@@ -40,7 +42,7 @@ const path = require('path');
  * @property {Function} all
  */
 
-class CrudController extends AbstractController {
+class CRUDController extends AbstractController {
     constructor (params) {
         let model = params.model;
 
@@ -63,6 +65,12 @@ class CrudController extends AbstractController {
         return callback(null, formData);
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @param {function} next
+     */
     parseFormMiddleware (req, res, next) {
         this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
@@ -77,6 +85,7 @@ class CrudController extends AbstractController {
     /**
      *
      * @param {Request} req
+     * @param {Response} res
      * @returns Object
      */
     listQuery (req, res) { //eslint-disable-line no-unused-vars
@@ -112,7 +121,7 @@ class CrudController extends AbstractController {
      * @protected
      */
     _renderList (res, list) {
-        return res.render(path.normalize(this.viewRoot + '/list'), {list: list});
+        return res.render(path.normalize(this.viewRoot + '/list'), {list});
     }
 
     /**
@@ -151,6 +160,13 @@ class CrudController extends AbstractController {
         );
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _createRequest (req, res) { //eslint-disable-line no-unused-vars
         return this.model.create(req.parsed);
     }
@@ -179,6 +195,13 @@ class CrudController extends AbstractController {
         }
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _readRequest (req, res) { //eslint-disable-line no-unused-vars
         const id = this._getId(req);
         return this.model.findById(id);
@@ -191,18 +214,25 @@ class CrudController extends AbstractController {
      * @returns {*}
      */
     read (req, res) {
-        var onResolve = ((item) => {
+        var onResolve = (item) => {
             if (item) {
                 this._renderItem(res, {item: item});
             } else {
                 onReject(new Error(`No such item: ${this._getId(res)}`));
             }
-        }).bind(this); // TODO: remove this when iojs will support arrow functions correctly
+        };
         var onReject = this._error.bind(this, res);
 
         this._readRequest(req, res).then(onResolve, onReject);
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _updateRequest (req, res) { //eslint-disable-line no-unused-vars
         return this.model.findByIdAndUpdate(this._getId(req), req.parsed);
     }
@@ -220,13 +250,20 @@ class CrudController extends AbstractController {
         } else {
             this._updateRequest(req, res).then(
                 (item) => {
-                    onResolve({item: item});
+                    onResolve({item});
                 },
                 onReject
             );
         }
     }
 
+    /**
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _destroyRequest (req, res) { //eslint-disable-line no-unused-vars
         return this.model.findByIdAndRemove(this._getId(req));
     }
@@ -263,4 +300,4 @@ class CrudController extends AbstractController {
     }
 }
 
-module.exports = CrudController;
+module.exports = CRUDController;
