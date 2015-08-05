@@ -317,6 +317,46 @@ describe('CRUDController', () => {
 
             controller.read(request, mockResponse);
         });
+
+        it('calls _renderItem if model resolved', (done) => {
+            const controller = controllerFactory({
+                findById (id) {
+                    return {
+                        then (resolve, reject) { //eslint-disable-line no-unused-vars
+                            resolve({id});
+                        }
+                    };
+                }
+            });
+            const request = {params: {id: 12345}};
+
+            controller._renderItem = (res, data) => {
+                assert.deepEqual(data, {item: {id: 12345}});
+                done();
+            };
+
+            controller.read(request, mockResponse);
+        });
+
+        it('calls _error if model rejected', (done) => {
+            const controller = controllerFactory({
+                findById () {
+                    return {
+                        then (resolve, reject) {
+                            reject({some: 'error'});
+                        }
+                    };
+                }
+            });
+            const request = {params: {id: 12345}};
+
+            controller._error = (res, error) => {
+                assert.deepEqual(error, {some: 'error'});
+                done();
+            };
+
+            controller.read(request, mockResponse);
+        });
     });
 
     describe('update', () => {
@@ -350,6 +390,49 @@ describe('CRUDController', () => {
                     };
                 }
             });
+
+            controller.update(request, mockResponse);
+        });
+
+        it('calls _renderItem if model resolved', (done) => {
+            const controller = controllerFactory({
+                findByIdAndUpdate (id, data) {
+                    return {
+                        then (resolve, reject) { //eslint-disable-line no-unused-vars
+                            resolve(data);
+                        }
+                    };
+                }
+            });
+            const request = {
+                params: {id: 12345},
+                parsed: {some: 'data'}
+            };
+
+            controller._renderItem = (res, data) => {
+                assert.deepEqual(data, {item: {some: 'data'}});
+                done();
+            };
+
+            controller.update(request, mockResponse);
+        });
+
+        it('calls _error if model rejected', (done) => {
+            const controller = controllerFactory({
+                findByIdAndUpdate (id, data) { //eslint-disable-line no-unused-vars
+                    return {
+                        then (resolve, reject) { //eslint-disable-line no-unused-vars
+                            reject({some: 'error'});
+                        }
+                    };
+                }
+            });
+            const request = {params: {id: 12345}};
+
+            controller._error = (res, error) => {
+                assert.deepEqual(error, {some: 'error'});
+                done();
+            };
 
             controller.update(request, mockResponse);
         });

@@ -214,13 +214,13 @@ class CRUDController extends AbstractController {
      * @returns {*}
      */
     read (req, res) {
-        var onResolve = (item) => {
+        var onResolve = ((item) => {
             if (item) {
                 this._renderItem(res, {item: item});
             } else {
                 onReject(new Error(`No such item: ${this._getId(res)}`));
             }
-        };
+        }).bind(this);
         var onReject = this._error.bind(this, res);
 
         this._readRequest(req, res).then(onResolve, onReject);
