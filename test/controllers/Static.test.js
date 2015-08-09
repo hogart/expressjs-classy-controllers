@@ -45,7 +45,8 @@ describe('StaticController', () => {
         it('call getData if it is defined', (done) => {
             class MyStaticController extends StaticController {
                 getData (req, res) { //eslint-disable-line no-unused-vars
-                    return {originalUrl: req.originalUrl};
+                    assert.ok(true, 'called getData');
+                    return Promise.resolve({originalUrl: req.originalUrl});
                 }
             }
 
@@ -62,6 +63,7 @@ describe('StaticController', () => {
                 render (viewName, data) {
                     assert.equal(viewName, 'views/some/path', 'res.render with correct path to view');
                     assert.deepEqual(data, {originalUrl: '/somePath/?query=42'}, 'res.render with correct data');
+
                     done();
                 }
             };
