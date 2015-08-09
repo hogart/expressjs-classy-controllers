@@ -96,5 +96,16 @@ describe('AbstractController', () => {
 
             assert.deepEqual(controller.middleware, mw);
         });
+
+        it('appends new middlewares, if middlewares already present', () => {
+            const controller = controllerFactory();
+            function mw1 () {}
+            function mw2 () {}
+
+            controller.setMiddleware(mw1);
+            controller.setMiddleware(mw2);
+
+            assert.deepEqual(controller.middleware, [mw1, mw2]);
+        });
     });
 });
