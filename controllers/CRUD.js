@@ -42,17 +42,27 @@ const path = require('path');
  * @property {Function} all
  */
 
-class CRUDController extends AbstractController {
-    constructor (params) {
-        let model = params.model;
 
-        if (!model) {
+/**
+ * @typedef {ControllerParams} CRUDControllerParams
+ * @property {Model} model
+ */
+
+/**
+ * Simple CRUD-enabled controller, works with Mongoose models, designed mainly for back-offices and admin interfaces
+ */
+class CRUDController extends AbstractController {
+    /**
+     * @param {CRUDControllerParams} params
+     */
+    constructor (params) {
+        if (!params.model) {
             throw new TypeError('Model not provided');
         }
 
         super(params);
 
-        this.model = model;
+        this.model = params.model;
     }
 
     /**

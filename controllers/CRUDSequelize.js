@@ -13,14 +13,32 @@ class CRUDSequelizeController extends CRUDController {
         return parseInt(super._getId(req));
     }
 
+    /**
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _listRequest (req, res) {
         return this.model.findAll(this.listQuery(req, res));
     }
 
+    /**
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _createRequest (req, res) { //eslint-disable-line no-unused-vars
         return this.model.create(req.parsed);
     }
 
+    /**
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _updateRequest (req, res) { //eslint-disable-line no-unused-vars
         const id = this._getId(req);
         const options = {
@@ -38,6 +56,12 @@ class CRUDSequelizeController extends CRUDController {
         });
     }
 
+    /**
+     * @param {Request} req
+     * @param {Response} res
+     * @returns {Promise}
+     * @protected
+     */
     _destroyRequest (req, res) { //eslint-disable-line no-unused-vars
         const id = this._getId(req);
         return this.model.destroy({where: {id}});

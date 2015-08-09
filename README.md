@@ -10,7 +10,7 @@ Very basic controller, doing nothing.
 ## StaticController
 
 Simple controller, serving one static page. If you override `getData(req, res)` in child class it is possible to pass
-dynamic data to that page.
+dynamic data to that page. Note that `getData` should return Promise (even if your operation is synchronous).
 
 ## CRUDController
 
