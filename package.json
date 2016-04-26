@@ -1,10 +1,10 @@
 {
-  "name": "expressjs-classy-controllers-es6",
-  "version": "0.7.0",
+  "name": "expressjs-classy-controllers",
+  "version": "0.8.0",
   "description": "Reducing boilerplate code for typical controllers",
   "main": "index.js",
   "scripts": {
-    "lint": "jscs . && eslint .",
+    "lint": "eslint .",
     "unit": "mocha -u bdd -R spec --recursive --harmony_arrow_functions test",
     "test": "npm run lint && npm run unit"
   },
@@ -24,54 +24,117 @@
   "homepage": "https://github.com/hogart/expressjs-classy-controllers#readme",
   "dependencies": {},
   "engines": {
-    "iojs": "2.3.4"
-  },
-  "jscsConfig": {
-    "esnext": true,
-    "requireSpaceAfterKeywords": [
-      "if",
-      "for",
-      "while",
-      "do",
-      "switch",
-      "try",
-      "catch"
-    ],
-    "disallowKeywordsOnNewLine": [
-      "else"
-    ],
-    "disallowSpaceBeforePostfixUnaryOperators": true,
-    "disallowMultipleLineStrings": true,
-    "requireSpaceBeforeBinaryOperators": true,
-    "requireSpaceAfterBinaryOperators": true,
-    "disallowSpaceAfterPrefixUnaryOperators": true,
-    "excludeFiles": [
-      "node_modules"
-    ]
+    "nodejs": "^5.10"
   },
   "eslintConfig": {
-    "env": {
-      "es6": true,
-      "node": true
+    "root": true,
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "script"
     },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "extends": "eslint-config-yandex",
     "rules": {
-      "no-underscore-dangle": [
-        0
-      ],
-      "quotes": [
-        2,
-        "single",
-        "avoid-escape"
-      ],
       "eol-last": [
         0
+      ],
+      "comma-dangle": [
+        "error",
+        "always"
+      ],
+      "arrow-body-style": [
+        "error",
+        "as-needed"
+      ],
+      "arrow-parens": [
+        "error",
+        "always"
+      ],
+      "constructor-super": [
+        "error"
+      ],
+      "generator-star-spacing": [
+        "error",
+        {
+          "before": false,
+          "after": true
+        }
+      ],
+      "no-class-assign": [
+        "error"
+      ],
+      "no-confusing-arrow": [
+        "error"
+      ],
+      "no-const-assign": [
+        "error"
+      ],
+      "no-dupe-class-members": [
+        "error"
+      ],
+      "no-duplicate-imports": [
+        "error"
+      ],
+      "no-new-symbol": [
+        "error"
+      ],
+      "no-this-before-super": [
+        "error"
+      ],
+      "no-useless-constructor": [
+        "error"
+      ],
+      "no-var": [
+        "error"
+      ],
+      "object-shorthand": [
+        "error",
+        "always"
+      ],
+      "prefer-arrow-callback": [
+        "error",
+        {
+          "allowNamedFunctions": true
+        }
+      ],
+      "prefer-const": [
+        "error",
+        {
+          "destructuring": "all"
+        }
+      ],
+      "prefer-reflect": [
+        "off"
+      ],
+      "prefer-rest-params": [
+        "warn"
+      ],
+      "prefer-spread": [
+        "error"
+      ],
+      "prefer-template": [
+        "error"
+      ],
+      "require-yield": [
+        "error"
+      ],
+      "template-curly-spacing": [
+        "error",
+        "never"
+      ],
+      "yield-star-spacing": [
+        "error",
+        "after"
       ]
     }
   },
   "devDependencies": {
     "chai": "^3.2.0",
-    "eslint": "^0.24.x",
-    "jscs": "^1.13.1",
+    "eslint": "^2.8.0",
+    "eslint-config-yandex": "^1.0.6",
     "mocha": "^2.2.5"
   }
 }

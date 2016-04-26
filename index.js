@@ -1,8 +1,13 @@
 'use strict';
 
+const Abstract = require('./controllers/Abstract');
+const Static = require('./controllers/Static');
+const CRUD = require('./controllers/CRUD');
+const CRUDSequelize = require('./controllers/CRUDSequelize');
+
 module.exports = {
-    Abstract: require('./controllers/Abstract'),
-    Static: require('./controllers/Static'),
-    CRUD: require('./controllers/CRUD'),
-    CRUDSequelize: require('./controllers/CRUDSequelize')
+    Abstract,
+    Static,
+    CRUD,
+    CRUDSequelize,
 };

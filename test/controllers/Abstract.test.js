@@ -5,11 +5,11 @@
 const assert = require('chai').assert;
 const path = require('path');
 const AbstractController = require('../../controllers/Abstract');
-function controllerFactory (params) {
+function controllerFactory(params) {
     return new AbstractController(params || {
         viewRoot: 'views/some/path',
         urlRoot: '/mount/point',
-        humanName: 'Nothing here, move along'
+        humanName: 'Nothing here, move along',
     });
 }
 
@@ -18,7 +18,11 @@ describe('AbstractController', () => {
         it('returns correct array', () => {
             const ac = controllerFactory();
 
-            assert.deepEqual(ac.getLink(), ['mount/point', 'Nothing here, move along'], 'getLink returned correct array');
+            assert.deepEqual(
+                ac.getLink(),
+                ['mount/point', 'Nothing here, move along',],
+                'getLink returned correct array'
+            );
         });
     });
 
@@ -50,12 +54,12 @@ describe('AbstractController', () => {
 
     describe('routes creating', () => {
         it('calls makeRoutes if truthie router is passed', () => {
-            function createController (router) {
+            function createController(router) {
                 return new AbstractController({
                     viewRoot: 'views/some/path',
                     urlRoot: '/mount/point',
                     humanName: 'Nothing here, move along',
-                    router: router
+                    router,
                 });
             }
 
@@ -72,7 +76,7 @@ describe('AbstractController', () => {
         });
     });
 
-    describe('setMiddleware', function () {
+    describe('setMiddleware', () => {
         it('returns empty array if no middlewares present', () => {
             const controller = controllerFactory();
             controller.setMiddleware();
@@ -89,8 +93,8 @@ describe('AbstractController', () => {
             assert.equal(mw, controller.middleware[0]);
         });
 
-        it('returns array unchanged', function () {
-            const mw = [() => {}];
+        it('returns array unchanged', () => {
+            const mw = [() => {},];
             const controller = controllerFactory();
             controller.setMiddleware(mw);
 
@@ -99,13 +103,13 @@ describe('AbstractController', () => {
 
         it('appends new middlewares, if middlewares already present', () => {
             const controller = controllerFactory();
-            function mw1 () {}
-            function mw2 () {}
+            function mw1() {}
+            function mw2() {}
 
             controller.setMiddleware(mw1);
             controller.setMiddleware(mw2);
 
-            assert.deepEqual(controller.middleware, [mw1, mw2]);
+            assert.deepEqual(controller.middleware, [mw1, mw2,]);
         });
     });
 });

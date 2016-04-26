@@ -9,7 +9,7 @@ class CRUDSequelizeController extends CRUDController {
      * @returns {number}
      * @protected
      */
-    _getId (req) {
+    _getId(req) {
         return parseInt(super._getId(req));
     }
 
@@ -19,7 +19,7 @@ class CRUDSequelizeController extends CRUDController {
      * @returns {Promise}
      * @protected
      */
-    _listRequest (req, res) {
+    _listRequest(req, res) {
         return this.model.findAll(this.listQuery(req, res));
     }
 
@@ -29,7 +29,7 @@ class CRUDSequelizeController extends CRUDController {
      * @returns {Promise}
      * @protected
      */
-    _createRequest (req, res) { //eslint-disable-line no-unused-vars
+    _createRequest(req, res) { // eslint-disable-line no-unused-vars
         return this.model.create(req.parsed);
     }
 
@@ -39,11 +39,11 @@ class CRUDSequelizeController extends CRUDController {
      * @returns {Promise}
      * @protected
      */
-    _updateRequest (req, res) { //eslint-disable-line no-unused-vars
+    _updateRequest(req, res) { // eslint-disable-line no-unused-vars
         const id = this._getId(req);
         const options = {
-            where: {id},
-            returning: true // this is working only with Postgre
+            where: {id,},
+            returning: true, // this is working only with Postgre
         };
 
         return new Promise((resolve, reject) => {
@@ -62,9 +62,9 @@ class CRUDSequelizeController extends CRUDController {
      * @returns {Promise}
      * @protected
      */
-    _destroyRequest (req, res) { //eslint-disable-line no-unused-vars
+    _destroyRequest(req, res) { // eslint-disable-line no-unused-vars
         const id = this._getId(req);
-        return this.model.destroy({where: {id}});
+        return this.model.destroy({where: {id,},});
     }
 }
 

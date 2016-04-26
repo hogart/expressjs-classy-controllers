@@ -55,7 +55,7 @@ class CRUDController extends AbstractController {
     /**
      * @param {CRUDControllerParams} params
      */
-    constructor (params) {
+    constructor(params) {
         if (!params.model) {
             throw new TypeError('Model not provided');
         }
@@ -71,7 +71,7 @@ class CRUDController extends AbstractController {
      * @param {Function} callback
      * @returns {*}
      */
-    parseForm (formData, callback) {
+    parseForm(formData, callback) {
         return callback(null, formData);
     }
 
@@ -81,7 +81,7 @@ class CRUDController extends AbstractController {
      * @param {Response} res
      * @param {function} next
      */
-    parseFormMiddleware (req, res, next) {
+    parseFormMiddleware(req, res, next) {
         this.parseForm(req.body, (parseError, parsed) => {
             if (parseError) {
                 req.parseError = parseError;
@@ -98,7 +98,7 @@ class CRUDController extends AbstractController {
      * @param {Response} res
      * @returns Object
      */
-    listQuery (req, res) { //eslint-disable-line no-unused-vars
+    listQuery(req, res) { // eslint-disable-line no-unused-vars
         return {};
     }
 
@@ -108,7 +108,7 @@ class CRUDController extends AbstractController {
      * @returns {number|string}
      * @protected
      */
-    _getId (req) {
+    _getId(req) {
         return req.params.id || req.query.id;
     }
 
@@ -117,11 +117,11 @@ class CRUDController extends AbstractController {
      * @param {Object} data
      * @protected
      */
-    _renderItem (res, data) {
+    _renderItem(res, data) {
         if (!('item' in data)) {
             throw new TypeError('"item" is not provided for _renderItem');
         }
-        return res.render(path.normalize(this.viewRoot + '/item'), data);
+        return res.render(path.normalize(`${this.viewRoot}/item`), data);
     }
 
     /**
@@ -130,8 +130,8 @@ class CRUDController extends AbstractController {
      * @returns {*}
      * @protected
      */
-    _renderList (res, list) {
-        return res.render(path.normalize(this.viewRoot + '/list'), {list});
+    _renderList(res, list) {
+        return res.render(path.normalize(`${this.viewRoot}/list`), {list,});
     }
 
     /**
@@ -142,7 +142,7 @@ class CRUDController extends AbstractController {
      * @return {Response} expressjs response object
      * @protected
      */
-    _error (res, error, status) {
+    _error(res, error, status) {
         return res.status(status || 500).send(error);
     }
 
@@ -153,7 +153,7 @@ class CRUDController extends AbstractController {
      * @returns {Promise}
      * @protected
      */
-    _listRequest (req, res) {
+    _listRequest(req, res) {
         return this.model.find(this.listQuery(req, res), this.listFields || '');
     }
 
@@ -163,7 +163,7 @@ class CRUDController extends AbstractController {
      * @param {Response} res
      * @returns {*}
      */
-    list (req, res) {
+    list(req, res) {
         this._listRequest(req, res).then(
             this._renderList.bind(this, res),
             this._error.bind(this, res)
@@ -177,7 +177,7 @@ class CRUDController extends AbstractController {
      * @returns {Promise}
      * @protected
      */
-    _createRequest (req, res) { //eslint-disable-line no-unused-vars
+    _createRequest(req, res) { // eslint-disable-line no-unused-vars
         return this.model.create(req.parsed);
     }
 
@@ -186,11 +186,11 @@ class CRUDController extends AbstractController {
      * @param {Request} req
      * @param {Response} res
      */
-    create (req, res) {
-        var onReject = this._error.bind(this, res);
+    create(req, res) {
+        const onReject = this._error.bind(this, res);
 
         if (req.parseError) {
-            this._renderItem(res, {item: req.parsed, error: req.parseError});
+            this._renderItem(res, {item: req.parsed, error: req.parseError,});
         } else {
             this._createRequest(req, res).then(
                 ((createdItem) => {
@@ -212,7 +212,7 @@ class CRUDController extends AbstractController {
      * @returns {Promise}
      * @protected
      */
-    _readRequest (req, res) { //eslint-disable-line no-unused-vars
+    _readRequest(req, res) { // eslint-disable-line no-unused-vars
         const id = this._getId(req);
         return this.model.findById(id);
     }
@@ -223,15 +223,15 @@ class CRUDController extends AbstractController {
      * @param {Response} res
      * @returns {*}
      */
-    read (req, res) {
-        var onResolve = ((item) => {
+    read(req, res) {
+        const onResolve = ((item) => {
             if (item) {
-                this._renderItem(res, {item: item});
+                this._renderItem(res, {item,});
             } else {
                 onReject(new Error(`No such item: ${this._getId(res)}`));
             }
         }).bind(this);
-        var onReject = this._error.bind(this, res);
+        const onReject = this._error.bind(this, res);
 
         this._readRequest(req, res).then(onResolve, onReject);
     }
@@ -243,7 +243,7 @@ class CRUDController extends AbstractController {
      * @returns {Promise}
      * @protected
      */
-    _updateRequest (req, res) { //eslint-disable-line no-unused-vars
+    _updateRequest(req, res) { // eslint-disable-line no-unused-vars
         return this.model.findByIdAndUpdate(this._getId(req), req.parsed);
     }
 
@@ -252,15 +252,15 @@ class CRUDController extends AbstractController {
      * @param {Request} req
      * @param {Response} res
      */
-    update (req, res) {
-        var onReject = this._error.bind(this, res);
-        var onResolve = this._renderItem.bind(this, res);
+    update(req, res) {
+        const onReject = this._error.bind(this, res);
+        const onResolve = this._renderItem.bind(this, res);
         if (req.parseError) {
-            onResolve({item: req.parsed, error: req.parseError});
+            onResolve({item: req.parsed, error: req.parseError,});
         } else {
             this._updateRequest(req, res).then(
                 (item) => {
-                    onResolve({item});
+                    onResolve({item,});
                 },
                 onReject
             );
@@ -274,7 +274,7 @@ class CRUDController extends AbstractController {
      * @returns {Promise}
      * @protected
      */
-    _destroyRequest (req, res) { //eslint-disable-line no-unused-vars
+    _destroyRequest(req, res) { // eslint-disable-line no-unused-vars
         return this.model.findByIdAndRemove(this._getId(req));
     }
 
@@ -283,9 +283,9 @@ class CRUDController extends AbstractController {
      * @param {Request} req
      * @param {Response} res
      */
-    destroy (req, res) {
-        var onResolve = res.redirect.bind(res, 302, this.urlRootFull);
-        var onReject = this._error.bind(this, res);
+    destroy(req, res) {
+        const onResolve = res.redirect.bind(res, 302, this.urlRootFull);
+        const onReject = this._error.bind(this, res);
 
         this._destroyRequest(req, res).then(onResolve, onReject);
     }
@@ -295,7 +295,7 @@ class CRUDController extends AbstractController {
      * @param {Router} router
      * @param {string} [mountPath='']
      */
-    makeRoutes (router, mountPath) {
+    makeRoutes(router, mountPath) {
         if (mountPath) {
             this.makeFullRoot(mountPath);
         }
@@ -304,9 +304,9 @@ class CRUDController extends AbstractController {
 
         router.get(this.urlRoot, this.middleware, this.list.bind(this));
         router.post(this.urlRoot, addedMw, this.create.bind(this));
-        router.get(this.urlRoot + ':id', this.middleware, this.read.bind(this));
-        router.post(this.urlRoot + ':id', addedMw, this.update.bind(this));
-        router.delete(this.urlRoot + ':id', this.middleware, this.destroy.bind(this));
+        router.get(`${this.urlRoot}:id`, this.middleware, this.read.bind(this));
+        router.post(`${this.urlRoot}:id`, addedMw, this.update.bind(this));
+        router.delete(`${this.urlRoot}:id`, this.middleware, this.destroy.bind(this));
     }
 }
 
