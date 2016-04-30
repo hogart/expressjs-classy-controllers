@@ -93,7 +93,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
-     *
+     * Generates query to get list
      * @param {Request} req
      * @param {Response} res
      * @returns Object
@@ -113,6 +113,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
+     * Renders single item
      * @param {Response} res
      * @param {Object} data
      * @protected
@@ -125,6 +126,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
+     * Renders list
      * @param res
      * @param list
      * @returns {*}
@@ -147,7 +149,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
-     *
+     * Performs db query to fetch list
      * @param {Request} req
      * @param {Response} res
      * @returns {Promise}
@@ -158,7 +160,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
-     * Renders lis of all models
+     * Renders list of all models
      * @param {Request} req
      * @param {Response} res
      * @returns {*}
@@ -171,7 +173,7 @@ class CRUDController extends AbstractController {
     }
 
     /**
-     *
+     * Performs CREATE query
      * @param {Request} req
      * @param {Response} res
      * @returns {Promise}

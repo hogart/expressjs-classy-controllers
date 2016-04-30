@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "unit": "mocha -u bdd -R spec --recursive --harmony_arrow_functions test",
+    "unit": "nyc node test/index.js",
     "test": "npm run lint && npm run unit"
   },
   "repository": {
@@ -132,9 +132,9 @@
     }
   },
   "devDependencies": {
-    "chai": "^3.2.0",
     "eslint": "^2.8.0",
     "eslint-config-yandex": "^1.0.6",
-    "mocha": "^2.2.5"
+    "nyc": "^6.4.0",
+    "tape": "^4.5.1"
   }
 }

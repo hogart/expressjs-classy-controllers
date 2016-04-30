@@ -1,8 +1,6 @@
-/* eslint-env mocha */
-
 'use strict';
 
-const assert = require('chai').assert;
+const test = require('tape');
 const StaticController = require('../../controllers/Static');
 function controllerFactory(params) {
     return new StaticController(params || {
@@ -12,16 +10,16 @@ function controllerFactory(params) {
     });
 }
 
-describe('StaticController', () => {
-    describe('makeRoutes', () => {
-        it('correctly calls router.get', (done) => {
+test('StaticController', (assert) => {
+    assert.test('makeRoutes', (assert) => {
+        assert.test('correctly calls router.get', (assert) => {
             const sc = controllerFactory();
             const router = {
                 get(urlRoot, mw, boundFn) {
                     assert.equal(urlRoot, '/mount/point', 'router.get got correct url');
-                    assert.isFunction(boundFn, 'router.get got handler');
-                    assert.lengthOf(mw, 0, 'empty middleware list');
-                    done();
+                    assert.equal(typeof boundFn, 'function', 'router.get got handler');
+                    assert.equal(mw.length, 0, 'empty middleware list');
+                    assert.end();
                 },
             };
 
@@ -29,20 +27,20 @@ describe('StaticController', () => {
         });
     });
 
-    describe('index', () => {
-        it('calls correct render', (done) => {
+    assert.test('index', (assert) => {
+        assert.test('calls correct render', (assert) => {
             const sc = controllerFactory();
             const res = {
                 render(viewName) {
                     assert.equal(viewName, 'views/some/path', 'res.render with correct path to view');
-                    done();
+                    assert.end();
                 },
             };
 
             sc.index(null, res);
         });
 
-        it('call getData if it is defined', (done) => {
+        assert.test('call getData if it is defined', (assert) => {
             class MyStaticController extends StaticController {
                 getData(req, res) { // eslint-disable-line no-unused-vars
                     assert.ok(true, 'called getData');
@@ -64,7 +62,7 @@ describe('StaticController', () => {
                     assert.equal(viewName, 'views/some/path', 'res.render with correct path to view');
                     assert.deepEqual(data, {originalUrl: '/somePath/?query=42',}, 'res.render with correct data');
 
-                    done();
+                    assert.end();
                 },
             };
 

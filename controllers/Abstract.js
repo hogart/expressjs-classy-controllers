@@ -41,7 +41,7 @@ class AbstractController {
 
     /**
      * Sets full path to controller
-     * @param {String} mountPath
+     * @param {String} [mountPath='']
      */
     makeFullRoot(mountPath) {
         this.urlRootFull = path.join(mountPath || '', this.urlRoot);

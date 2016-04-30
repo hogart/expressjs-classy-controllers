@@ -2,7 +2,7 @@
 
 'use strict';
 
-const assert = require('chai').assert;
+const test = require('tape');
 const path = require('path');
 const CrudController = require('../../controllers/CRUD');
 
@@ -15,18 +15,20 @@ const mockResponse = {
     render() {},
 };
 
-describe('CRUDController', () => {
-    function controllerFactory(model) {
-        return new CrudController({
-            viewRoot: 'views/some/path',
-            urlRoot: '/mount/point/',
-            humanName: 'Nothing here, move along',
-            model,
-        });
-    }
+function controllerFactory(model) {
+    return new CrudController({
+        viewRoot: 'views/some/path',
+        urlRoot: '/mount/point/',
+        humanName: 'Nothing here, move along',
+        model,
+    });
+}
 
-    describe('constructor', () => {
-        it('throws error if model is not passed', () => {
+
+test('CRUDController', (assert) => {
+    assert.test('constructor', (assert) => {
+        assert.test('throws error if model is not passed', (assert) => {
+            assert.plan(2);
             assert.throws(
                 controllerFactory.bind(null, false),
                 /Model not provided/,
@@ -35,34 +37,36 @@ describe('CRUDController', () => {
 
             assert.doesNotThrow(
                 controllerFactory.bind(null, {}),
+                /./,
                 'no errors thrown when model is present'
             );
         });
     });
 
-    describe('parseForm', () => {
-        it('calls callback', (done) => {
+    assert.test('parseForm', (assert) => {
+        assert.test('calls callback', (assert) => {
             CrudController.prototype.parseForm({some: 'data',}, (error, data) => {
-                assert.isNull(error, 'error is null by default');
+                assert.equal(error, null, 'error is null by default');
                 assert.deepEqual(data, {some: 'data',});
-                done();
+                assert.end();
             });
         });
     });
 
-    describe('parseFormMiddleware', () => {
-        it('uses this.parseForm', (done) => {
+    assert.test('parseFormMiddleware', (assert) => {
+        assert.test('uses this.parseForm', (assert) => {
             const controller = controllerFactory({});
             controller.parseForm = (data, cb) => {
                 assert.deepEqual(data, {some: 'form data',});
-                assert.isFunction(cb);
-                done();
+                assert.equal(typeof cb, 'function');
+
+                assert.end();
             };
 
             controller.parseFormMiddleware({body: {some: 'form data',},}, null, () => {});
         });
 
-        it('adds fields to request', (done) => {
+        assert.test('adds fields to request', (assert) => {
             const controller = controllerFactory({});
             controller.parseForm = (data, cb) => {
                 cb({some: 'error',}, {some: 'data',});
@@ -72,13 +76,13 @@ describe('CRUDController', () => {
                 assert.deepEqual(req.parsed, {some: 'data',});
                 assert.deepEqual(req.parseError, {some: 'error',});
 
-                done();
+                assert.end();
             });
         });
     });
 
-    describe('_getId', () => {
-        it('gets id from various sources', () => {
+    assert.test('_getId', (assert) => {
+        assert.test('gets id from various sources', (assert) => {
             const req1 = {params: {id: 1234,}, query: {},};
             const req2 = {params: {}, query: {id: 4321,},};
             const req3 = {params: {id: 1234,}, query: {id: 4321,},};
@@ -86,43 +90,47 @@ describe('CRUDController', () => {
             assert.equal(CrudController.prototype._getId(req1), 1234, 'from params');
             assert.equal(CrudController.prototype._getId(req2), 4321, 'from query');
             assert.equal(CrudController.prototype._getId(req3), 1234, 'from params first');
+
+            assert.end();
         });
     });
 
-    describe('_renderItem', () => {
-        it('calls res.render with correct params', (done) => {
+    assert.test('_renderItem', (assert) => {
+        assert.test('calls res.render with correct params', (assert) => {
             const controller = controllerFactory({});
             const res = {
                 render(viewPath, data) {
                     assert.equal(viewPath, path.normalize('views/some/path/item'));
                     assert.deepEqual(data, {item: {some: 'item',},});
-                    done();
+
+                    assert.end();
                 },
             };
 
             controller._renderItem(res, {item: {some: 'item',},});
         });
 
-        it('throws error when passed object do not contains `item` field', () => {
+        assert.test('throws error when passed object do not contains `item` field', (assert) => {
             const controller = controllerFactory({});
 
             assert.throws(
                 controller._renderItem.bind(controller, null, {some: 'item',}),
-                TypeError,
                 /"item" is not provided for _renderItem/,
                 'correct error thrown'
             );
+
+            assert.end();
         });
     });
 
-    describe('_renderList', () => {
-        it('calls res.render with correct params', (done) => {
+    assert.test('_renderList', (assert) => {
+        assert.test('calls res.render with correct params', (assert) => {
             const controller = controllerFactory({});
             const res = {
                 render(viewPath, data) {
                     assert.equal(viewPath, path.normalize('views/some/path/list'));
                     assert.deepEqual(data, {list: ['some', 'list',],}, 'data correctly wrapped to object');
-                    done();
+                    assert.end();
                 },
             };
 
@@ -130,88 +138,99 @@ describe('CRUDController', () => {
         });
     });
 
-    describe('_error', () => {
-        const res = {
-            status(statusCode) {
-                this.statusCode = statusCode;
-                return this;
-            },
+    assert.test('_error', (assert) => {
+        function createResponseObject() {
+            return {
+                body: null,
+                statusCode: null,
+                status(statusCode) {
+                    this.statusCode = statusCode;
+                    return this;
+                },
 
-            send(body) {
-                this.body = body;
-            },
-        };
+                send(body) {
+                    this.body = body;
+                },
+            };
+        }
 
         const error = CrudController.prototype._error;
 
-        beforeEach(() => {
-            res.body = null;
-            res.statusCode = null;
-        });
-
-        it('calls correct methods of res', () => {
+        assert.test('calls correct methods of res', (assert) => {
+            const res = createResponseObject();
             error(res, {answer: 42,}, 555);
             assert.equal(res.statusCode, 555);
             assert.deepEqual(res.body, {answer: 42,});
+
+            assert.end();
         });
 
-        it('defaults to 500 status code', () => {
+        assert.test('defaults to 500 status code', (assert) => {
+            const res = createResponseObject();
             error(res, {answer: 42,});
             assert.equal(res.statusCode, 500);
             assert.deepEqual(res.body, {answer: 42,});
+
+            assert.end();
         });
     });
 
-    describe('list', () => {
-        const model = {
-            find(query, fields) {
+    assert.test('list', (assert) => {
+        function modelFactory() {
+            const model = {
+                query: null,
+                fields: null,
+                error: null,
+            };
+            model.find = function (query, fields) {
                 this.query = query;
                 this.fields = fields;
+
                 return {
-                    then(resolve, rej) {
+                    then(resolve, reject) {
                         if (model.error) {
-                            rej(model.error);
+                            reject(model.error);
                         } else {
                             resolve(['some', 'data',]);
                         }
                     },
                 };
-            },
-        };
+            };
 
-        beforeEach(() => {
-            model.query = null;
-            model.fields = null;
-            model.error = null;
-        });
+            return model;
+        }
 
-        it('fetches data from model and renders list', (done) => {
+        assert.test('fetches data from model and renders list', (assert) => {
+            const model = modelFactory();
             const controller = controllerFactory(model);
 
             controller._renderList = function (res, list) {
                 assert.deepEqual(res, {some: 'response',}, 'response object passed correctly');
                 assert.equal(model.fields, '', 'list of fields by default is empty string');
                 assert.deepEqual(list, ['some', 'data',], 'rendering list returned from model');
-                done();
+
+                assert.end();
             };
 
             controller.list(null, {some: 'response',});
         });
 
-        it('uses listFields if defined', (done) => {
+        assert.test('uses listFields if defined', (assert) => {
+            const model = modelFactory();
             const controller = controllerFactory(model);
 
             controller.listFields = 'id name title createdAt';
 
             controller._renderList = () => {
                 assert.equal(model.fields, 'id name title createdAt', 'list of fields used to create request');
-                done();
+                assert.end();
             };
 
             controller.list();
         });
 
-        it('calls listQuery', (done) => {
+        assert.test('calls listQuery', (assert) => {
+            const model = modelFactory();
             const controller = controllerFactory(model);
 
             controller.listQuery = (req, res) => {
@@ -222,13 +241,14 @@ describe('CRUDController', () => {
 
             controller._renderList = () => {
                 assert.deepEqual(model.query, {some: 'query',});
-                done();
+                assert.end();
             };
 
             controller.list({some: 'request',}, {some: 'response',});
         });
 
-        it('sends error if error occured during fetching', (done) => {
+        assert.test('sends error if error occured during fetching', (assert) => {
+            const model = modelFactory();
             const controller = controllerFactory(model);
             function render() {}
 
@@ -237,28 +257,28 @@ describe('CRUDController', () => {
             controller._error = function (res, error) {
                 assert.deepEqual(res, {some: 'response', render,}, 'response object passed correctly');
                 assert.deepEqual(error, {some: 'error',}, 'error object passed correctly');
-                done();
+                assert.end();
             };
 
             controller.list(null, {some: 'response', render,});
         });
     });
 
-    describe('create', () => {
-        it('renders item with additional error object, if request contains req.parseError', (done) => {
+    assert.test('create', (assert) => {
+        assert.test('renders item with additional error object, if request contains req.parseError', (assert) => {
             const controller = controllerFactory({});
 
             controller._renderItem = (res, data) => {
-                assert.property(data, 'item');
+                assert.ok(data.hasOwnProperty('item'));
                 assert.deepEqual(data.error, {some: 'error',});
 
-                done();
+                assert.end();
             };
 
             controller.create({body: null, parseError: {some: 'error',}, parsed: {some: 'item',},});
         });
 
-        it('calls this.model.create with proper data', (done) => {
+        assert.test('calls this.model.create with proper data', (assert) => {
             const controller = controllerFactory({
                 create(data) {
                     assert.deepEqual(data, {some: 'data',}, 'model.create called with correct data');
@@ -266,7 +286,7 @@ describe('CRUDController', () => {
                     return {
                         then(resolve) {
                             resolve(data);
-                            done();
+                            assert.end();
                         },
                     };
                 },
@@ -275,7 +295,7 @@ describe('CRUDController', () => {
             controller.create({parsed: {some: 'data',},}, mockResponse);
         });
 
-        it('redirects when item successfully created', (done) => {
+        assert.test('redirects when item successfully created', (assert) => {
             const controller = controllerFactory({
                 create(data) {
                     return {
@@ -289,7 +309,7 @@ describe('CRUDController', () => {
             const res = {
                 redirect(status, url) {
                     assert.equal(url, path.normalize('/mount/point/some id'));
-                    done();
+                    assert.end();
                 },
                 status() {
                     return this;
@@ -301,14 +321,14 @@ describe('CRUDController', () => {
         });
     });
 
-    describe('read', () => {
-        it('calls this.model.findById', (done) => {
+    assert.test('read', (assert) => {
+        assert.test('calls this.model.findById', (assert) => {
             const controller = controllerFactory({
                 findById(id) {
                     assert.equal(id, 12345, 'id was extracted');
                     return {
                         then() {
-                            done();
+                            assert.end();
                         },
                     };
                 },
@@ -318,7 +338,7 @@ describe('CRUDController', () => {
             controller.read(request, mockResponse);
         });
 
-        it('calls _renderItem if model resolved', (done) => {
+        assert.test('calls _renderItem if model resolved', (assert) => {
             const controller = controllerFactory({
                 findById(id) {
                     return {
@@ -332,13 +352,13 @@ describe('CRUDController', () => {
 
             controller._renderItem = (res, data) => {
                 assert.deepEqual(data, {item: {id: 12345,},});
-                done();
+                assert.end();
             };
 
             controller.read(request, mockResponse);
         });
 
-        it('calls _error if model rejected', (done) => {
+        assert.test('calls _error if model rejected', (assert) => {
             const controller = controllerFactory({
                 findById() {
                     return {
@@ -352,27 +372,27 @@ describe('CRUDController', () => {
 
             controller._error = (res, error) => {
                 assert.deepEqual(error, {some: 'error',});
-                done();
+                assert.end();
             };
 
             controller.read(request, mockResponse);
         });
     });
 
-    describe('update', () => {
-        it('renders item again along with errors from parsing', (done) => {
+    assert.test('update', (assert) => {
+        assert.test('renders item again along with errors from parsing', (assert) => {
             const controller = controllerFactory({});
 
             controller._renderItem = (res, item) => {
                 assert.deepEqual(item.error, {some: 'error',}, 'error object ok');
                 assert.deepEqual(item.item, {some: 'object',}, 'item object ok');
-                done();
+                assert.end();
             };
 
             controller.update({parsed: {some: 'object',}, parseError: {some: 'error',},}, mockResponse);
         });
 
-        it('calls this.model.findByIdAndUpdate', (done) => {
+        assert.test('calls this.model.findByIdAndUpdate', (assert) => {
             const request = {
                 params: {id: 12345,},
                 parsed: {some: 'data',},
@@ -385,7 +405,7 @@ describe('CRUDController', () => {
                     return {
                         then(resolve) {
                             resolve();
-                            done();
+                            assert.end();
                         },
                     };
                 },
@@ -394,7 +414,7 @@ describe('CRUDController', () => {
             controller.update(request, mockResponse);
         });
 
-        it('calls _renderItem if model resolved', (done) => {
+        assert.test('calls _renderItem if model resolved', (assert) => {
             const controller = controllerFactory({
                 findByIdAndUpdate(id, data) {
                     return {
@@ -411,13 +431,13 @@ describe('CRUDController', () => {
 
             controller._renderItem = (res, data) => {
                 assert.deepEqual(data, {item: {some: 'data',},});
-                done();
+                assert.end();
             };
 
             controller.update(request, mockResponse);
         });
 
-        it('calls _error if model rejected', (done) => {
+        assert.test('calls _error if model rejected', (assert) => {
             const controller = controllerFactory({
                 findByIdAndUpdate(id, data) { // eslint-disable-line no-unused-vars
                     return {
@@ -431,20 +451,20 @@ describe('CRUDController', () => {
 
             controller._error = (res, error) => {
                 assert.deepEqual(error, {some: 'error',});
-                done();
+                assert.end();
             };
 
             controller.update(request, mockResponse);
         });
     });
 
-    describe('destroy', () => {
+    assert.test('destroy', (assert) => {
         const request = {
             params: {id: 12345,},
             body: {some: 'data',},
         };
 
-        it('calls this.model.findByIdAndRemove', (done) => {
+        assert.test('calls this.model.findByIdAndRemove', (assert) => {
             const controller = controllerFactory({
                 findByIdAndRemove(id) {
                     assert.equal(id, 12345, 'id extracted ok');
@@ -452,7 +472,7 @@ describe('CRUDController', () => {
                     return {
                         then(resolve) {
                             resolve();
-                            done();
+                            assert.end();
                         },
                     };
                 },
@@ -461,7 +481,7 @@ describe('CRUDController', () => {
             controller.destroy(request, mockResponse);
         });
 
-        it('renders error if deletion failed', (done) => {
+        assert.test('renders error if deletion failed', (assert) => {
             const controller = controllerFactory({
                 findByIdAndRemove() {
                     return {
@@ -474,13 +494,13 @@ describe('CRUDController', () => {
 
             controller._error = (res, error) => {
                 assert.deepEqual(error, {some: 'error',});
-                done();
+                assert.end();
             };
 
             controller.destroy(request, mockResponse);
         });
 
-        it('correctly redirects if deletion succeeded', (done) => {
+        assert.test('correctly redirects if deletion succeeded', (assert) => {
             const controller = controllerFactory({
                 findByIdAndRemove(id) {
                     return {
@@ -503,14 +523,14 @@ describe('CRUDController', () => {
                 redirect(status, url) {
                     assert.equal(url, controller.urlRootFull);
 
-                    done();
+                    assert.end();
                 },
             });
         });
     });
 
-    describe('makeRoutes', () => {
-        it('creates proper routes', () => {
+    assert.test('makeRoutes', (assert) => {
+        assert.test('creates proper routes', (assert) => {
             const controller = controllerFactory({});
             const router = {
                 gets: [],
@@ -551,12 +571,14 @@ describe('CRUDController', () => {
                 [`${controller.urlRoot}:id`,]
             );
 
-            assert.lengthOf(router.middlewares[0], 3, '3 default empty middlewares');
-            assert.lengthOf(router.middlewares[1], 2, '2 middlewares consisting of just one middleware');
+            assert.equal(router.middlewares[0].length, 3, '3 default empty middlewares');
+            assert.equal(router.middlewares[1].length, 2, '2 middlewares consisting of just one middleware');
             assert.equal(router.postMw[0], router.postMw[1], 'middlewares were correctly added to post requests');
+
+            assert.end();
         });
 
-        it('properly uses second parameter', () => {
+        assert.test('properly uses second parameter', (assert) => {
             const controller = controllerFactory({});
             const router = {
                 get() {},
@@ -569,6 +591,8 @@ describe('CRUDController', () => {
 
             controller.makeRoutes(router, '/subApplication/');
             assert.equal(controller.urlRootFull, path.normalize('/subApplication/mount/point/'));
+
+            assert.end();
         });
     });
 });

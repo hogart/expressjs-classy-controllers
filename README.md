@@ -1,11 +1,11 @@
-# expressjs-classy-controllers-es6
+# expressjs-classy-controllers
 
 Reducing boilerplate code for typical controllers.
-This is **ES2015-only library**, to use it, you'll need iojs >= 2.3 with `--harmony_arrow_functions`.
+This is **ES2015-only library**, to use it, you'll need nodejs >= 5.10.
 
 ## AbstractController
 
-Very basic controller, doing nothing.
+Very basic controller, doing nothing. Foundation for other controllers (and your own, if you wish).
 
 ## StaticController
 
